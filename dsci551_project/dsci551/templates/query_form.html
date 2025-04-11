@@ -1,29 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Natural Language Query</title>
+    <title>自然语言查询</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .result-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .error-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid red;
+            background-color: #fdd;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
 </head>
 <body>
-    <h1>Ask Your Database a Question</h1>
-    <form action="{% url 'natural_language_query' %}" method="post">
+    <h1>向数据库提问</h1>
+    <form id="queryForm" action="{% url 'natural_language_query' %}" method="post">
         {% csrf_token %}
-        <label for="query">Enter your query:</label>
+        <label for="query">请输入你的查询：</label>
         <textarea id="query" name="query" rows="4" cols="50"></textarea>
         <br>
-        <input type="submit" value="Submit">
+        <input type="submit" value="提交">
     </form>
 
-    {% if result %}
-    <h2>Result:</h2>
-    <pre>{{ result }}</pre>
-    {% endif %}
+    <div id="result-container" class="result-container" style="display: none;">
+        <h2>查询结果：</h2>
+        <pre id="result"></pre>
+    </div>
 
-    {% if error %}
-    <h2>Error:</h2>
-    <pre>{{ error }}</pre>
-    {% endif %}
+    <div id="error-container" class="error-container" style="display: none;">
+        <h2>错误：</h2>
+        <pre id="error"></pre>
+    </div>
+
+    <a href="{% url 'user_query_history' %}">查看我的查询历史</a>
+
+    <script>
+        document.getElementById('queryForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // 阻止表单提交的默认行为
+
+            var query = document.getElementById('query').value;
+            var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            var formData = new FormData();
+            formData.append('query', query);
+            formData.append('csrfmiddlewaretoken', csrfToken);
+
+            fetch("{% url 'natural_language_query' %}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result) {
+                    document.getElementById('result').textContent = JSON.stringify(data.result, null, 2);
+                    document.getElementById('result-container').style.display = 'block';
+                    document.getElementById('error-container').style.display = 'none';
+                } else if (data.error) {
+                    document.getElementById('error').textContent = data.error;
+                    document.getElementById('error-container').style.display = 'block';
+                    document.getElementById('result-container').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                document.getElementById('error').textContent = '发生错误：' + error;
+                document.getElementById('error-container').style.display = 'block';
+                document.getElementById('result-container').style.display = 'none';
+            });
+        });
+    </script>
 </body>
-<a href="{% url 'user_query_history' %}">查看我的查询历史</a>
 </html>
