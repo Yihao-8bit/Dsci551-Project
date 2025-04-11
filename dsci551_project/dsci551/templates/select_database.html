@@ -1,0 +1,19 @@
+<!-- templates/select_database.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Database Type</title>
+</head>
+<body>
+    <h1>请选择您要使用的数据库类型</h1>
+
+    <!-- MySQL Button (currently disabled) -->
+    <button id="mysql_button" onclick="location.href='{% url 'natural_language_query' %}'">MySQL 查询</button><br><br>
+
+    <!-- NoSQL Button (currently enabled) -->
+    <button id="nosql_button" onclick="location.href='{% url 'nosql_query' %}'">NoSQL 查询</button>
+</body>
+</html>

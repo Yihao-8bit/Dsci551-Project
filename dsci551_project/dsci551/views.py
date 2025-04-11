@@ -15,8 +15,14 @@ from django.http import JsonResponse
 from .models import UserQueryHistory
 from django.contrib.auth.decorators import login_required
 
+def nosql_query(request):
+    return render(request, 'nosql_query.html') #谢姐靠你了
 
-from django.db import models
+
+@login_required
+def select_database(request):
+    return render(request, 'select_database.html')  # 渲染数据库选择页面
+
 
 def get_db_schema():
     schema = []
@@ -61,6 +67,7 @@ def user_register(request):
     return render(request, 'register.html')
 
 
+
 def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -68,13 +75,12 @@ def user_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # 登录成功，跳转到查询页面
-            return redirect('natural_language_query')  
+            # 登录成功后，重定向到选择数据库页面
+            return redirect('select_database')  
         else:
-            # 登录失败
             return render(request, 'login.html', {'error': '用户名或密码错误！'})
-    else:
-        return render(request, 'login.html')  # GET 请求直接渲染登录页面
+    return render(request, 'login.html')
+
 
 def user_logout(request):
     logout(request)
@@ -119,7 +125,6 @@ def clean_code_block(code_text: str) -> str:
 
     code_text = re.sub(r"```sql", "", code_text)
 
-    # 确保清理掉多余的空格和换行，但不影响 SQL 查询的结构
     code_text = code_text.strip()  # 去除两端的空格
 
     return code_text
