@@ -1,0 +1,25 @@
+<!-- 文件名：home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Welcome</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        .btn-container { margin-top: 20px; }
+        button { padding: 10px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>欢迎来到查询系统</h1>
+    <div class="btn-container">
+        <a href="{% url 'register' %}">
+            <button>注册</button>
+        </a>
+        <a href="{% url 'login' %}">
+            <button>登录</button>
+        </a>
+    </div>
+</body>
+</html>

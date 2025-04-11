@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Natural Language Query</title>
+</head>
+<body>
+    <h1>Ask Your Database a Question</h1>
+    <form action="{% url 'natural_language_query' %}" method="post">
+        {% csrf_token %}
+        <label for="query">Enter your query:</label>
+        <textarea id="query" name="query" rows="4" cols="50"></textarea>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+
+    {% if result %}
+    <h2>Result:</h2>
+    <pre>{{ result }}</pre>
+    {% endif %}
+
+    {% if error %}
+    <h2>Error:</h2>
+    <pre>{{ error }}</pre>
+    {% endif %}
+</body>
+<a href="{% url 'user_query_history' %}">查看我的查询历史</a>
+</html>
