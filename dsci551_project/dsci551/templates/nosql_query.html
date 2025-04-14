@@ -6,9 +6,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NoSQL Query</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .result-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .error-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid red;
+            background-color: #fdd;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
 </head>
 <body>
     <h1>Welcome to NoSQL Query Page</h1>
     <p>This is where you can perform NoSQL queries.</p>
+<body>
+    <h1>Please choose your database type and enter your database link </h1>
+    <h1>向数据库提问</h1>
+    <form id="mongoqueryForm" action="{% url 'nosql_mongo_query' %}" method="post">
+        {% csrf_token %}
+        <label for="data_link_query">Please enter your mongodb link:</label>
+        <textarea id="mongo_data_link_query" name="data_link_query" rows="4" cols="50"></textarea>
+        <label for="mongo_query">请输入你的查询：</label>
+        <textarea id="mongo_query" name="mongo_query" rows="4" cols="50"></textarea>
+        <br>
+        <input type="submit" value="submit_mongo_query">
+    </form>
+    <form id="firebasequeryForm" action="{% url 'nosql_query' %}" method="post">
+        {% csrf_token %}
+        <label for="data_link_query">Please enter your firebase link:</label>
+        <textarea id="firebase_data_link_query" name="data_link_query" rows="4" cols="50"></textarea>
+        <label for="firebase_query">请输入你的查询：</label>
+        <textarea id="firebase_query" name="firebase_query" rows="4" cols="50"></textarea>
+        <br>
+        <input type="submit" value="submit_firebase_query">
+    </form>
+
+    <div id="result-container" class="result-container" style="display: none;">
+        <h2>查询结果：</h2>
+        <pre id="result"></pre>
+    </div>
+
+    <div id="error-container" class="error-container" style="display: none;">
+        <h2>错误：</h2>
+        <pre id="error"></pre>
+    </div>
+
+    <a href="{% url 'user_query_history' %}">查看我的查询历史</a>
+
+    <script>
+        
+        document.getElementById('firebasequeryForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // 阻止表单提交的默认行为
+
+            var query = document.getElementById('firebase_query').value;
+            var data_link = document.getElementById('firebase_data_link_query').value;
+            var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            var formData = new FormData();
+            formData.append('firebasequery', query);
+            formData.append('datalink',data_link);
+            formData.append('csrfmiddlewaretoken', csrfToken);
+
+            fetch("{% url 'nosql_query' %}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result) {
+                    document.getElementById('result').textContent = JSON.stringify(data.result, null, 2);
+                    document.getElementById('result-container').style.display = 'block';
+                    document.getElementById('error-container').style.display = 'none';
+                } else if (data.error) {
+                    document.getElementById('error').textContent = data.error;
+                    document.getElementById('error-container').style.display = 'block';
+                    document.getElementById('result-container').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                document.getElementById('error').textContent = '发生错误：' + error;
+                document.getElementById('error-container').style.display = 'block';
+                document.getElementById('result-container').style.display = 'none';
+            });
+        });
+        document.getElementById('mongoqueryForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // 阻止表单提交的默认行为
+
+            var query = document.getElementById('mongo_query').value;
+            var data_link = document.getElementById('mongo_data_link_query').value;
+            var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            var formData = new FormData();
+            formData.append('mongoquery', query);
+            formData.append('datalink',data_link);
+            formData.append('csrfmiddlewaretoken', csrfToken);
+
+            fetch("{% url 'nosql_mongo_query' %}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result) {
+                    document.getElementById('result').textContent = JSON.stringify(data.result, null, 2);
+                    document.getElementById('result-container').style.display = 'block';
+                    document.getElementById('error-container').style.display = 'none';
+                } else if (data.error) {
+                    document.getElementById('error').textContent = data.error;
+                    document.getElementById('error-container').style.display = 'block';
+                    document.getElementById('result-container').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                document.getElementById('error').textContent = '发生错误：' + error;
+                document.getElementById('error-container').style.display = 'block';
+                document.getElementById('result-container').style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
+
 </body>
 </html>

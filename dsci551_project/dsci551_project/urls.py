@@ -45,5 +45,6 @@ urlpatterns = [
 
     path('select_database/', views.select_database, name='select_database'),
     path('nosql_query/', views.nosql_query, name='nosql_query'),
+    path('nosql_mongo_query/', views.nosql_mongo_query, name='nosql_mongo_query'),
 ]
 

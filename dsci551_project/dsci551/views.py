@@ -14,10 +14,111 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from .models import UserQueryHistory
 from django.contrib.auth.decorators import login_required
-
+from pymongo import MongoClient
+@login_required
 def nosql_query(request):
+    if request.method == 'POST':
+        user_datalink = request.POST.get("datalink")
+        user_input = request.POST.get('firebasequery')
+        deepseek_api_key = "sk-c6d9cd93a21b418da5adc6ef7fcb2479"
+        deepseek_api_url = "https://api.deepseek.com/v1/chat/completions"
+        # 更新系统提示语
+        FIREBASE_SYSTEM_INSTRUCTION = (
+            f"You are my noSQL database assistant. Here are the database links:\n{user_datalink}\n"
+            "I will give you natural language commands related to exploring the schema, querying, inserting, updating, and deleting. "
+             "To splice .json paths, use POST/GET/PATCH/DELETE, etc. for reading and writing."
+            "Never use any firebase_admin or other libraries, and never use Service Account."
+            "Do not output any extra textual explanations or comments, only return executable Python code."
+            "Only return firebase queries that can be directly executed in python. "
+            "If you understand, output only 'ok, I'm ready for your query'."
+        )
+
+        print(user_datalink)
+
+        messages = [{"role": "system", "content": FIREBASE_SYSTEM_INSTRUCTION}]
+        messages.append({"role": "user", "content": user_input})
+
+        # 调用 DeepSeek API
+        reasoning, content = call_deepseek(messages, deepseek_api_key, deepseek_api_url)
+        if not content:
+            return JsonResponse({"error": "Error processing your request."}, status=400)
+
+        # 打印 LLM 返回的 SQL 语句
+        print(f"LLM 返回的 SQL 查询语句：\n{content}")
+
+        # 清洗并执行返回的代码
+        safe_locals = {}
+        safe_code = clean_code_block(content)
+        # 打印清洗后的 SQL 语句（如果需要查看清洗后的 SQL） 
+        print(f"清洗后的 SQL 查询语句：\n{safe_code}")
+        try:
+            # 执行 MySQL 代码
+            exec(safe_code, {}, safe_locals)
+            # 存储用户查询和 LLM 返回的结果
+            query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(safe_locals['response'].json()))
+            query_history.save()
+
+            # 返回查询结果
+            return JsonResponse({"result": str(safe_locals['response'].json())})
+        
+
+        except Exception as e:
+            print(f"Error occurred: {str(e)}")
+            return JsonResponse({"error": str(e)}, status=500)
     return render(request, 'nosql_query.html') #谢姐靠你了
 
+@login_required
+def nosql_mongo_query(request):
+    if request.method == 'POST':
+        user_datalink = request.POST.get("datalink")
+        user_input = request.POST.get('mongoquery')
+        deepseek_api_key = "sk-c6d9cd93a21b418da5adc6ef7fcb2479"
+        deepseek_api_url = "https://api.deepseek.com/v1/chat/completions"
+        # 更新系统提示语
+        FIREBASE_SYSTEM_INSTRUCTION = (
+            f"You are my noSQL database assistant. Here are the database links:\n{user_datalink}\n"
+            "using pymongo to connect to the mongodb server"
+            "I will give you natural language commands related to exploring the schema, querying, inserting, updating, and deleting. "
+            "find (with projection), aggregate (with $match, $group,$sort, $limit, $skip, $project). Note that $match can be before and after $group. You should also allow queries that involve joining of two collections (using $lookup)."
+            "Do not output any extra textual explanations or comments, only return executable Python code. I don't need your explanation, just give me pure pure code"
+            "Only return pymongo code that can be directly executed in python. "
+            "store results in a variable named result"
+            "If you understand, output only 'ok, I'm ready for your query'."
+        )
+
+        print(user_datalink)
+        print(user_input)
+        messages = [{"role": "system", "content": FIREBASE_SYSTEM_INSTRUCTION}]
+        messages.append({"role": "user", "content": user_input})
+
+        # 调用 DeepSeek API
+        reasoning, content = call_deepseek(messages, deepseek_api_key, deepseek_api_url)
+        if not content:
+            return JsonResponse({"error": "Error processing your request."}, status=400)
+
+        # 打印 LLM 返回的 SQL 语句
+        print(f"LLM 返回的 SQL 查询语句：\n{content}")
+        # 清洗并执行返回的代码
+        safe_locals = {}
+        safe_code = clean_code_block(content)
+        # 打印清洗后的 SQL 语句（如果需要查看清洗后的 SQL） 
+        print(f"清洗后的 SQL 查询语句：\n{safe_code}")
+        try:
+            # 执行 MySQL 代码
+            #client = MongoClient("mongodb://localhost:27017/")
+            exec(safe_code, {}, safe_locals)
+            # 存储用户查询和 LLM 返回的结果
+            query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(safe_locals['result']))
+            query_history.save()
+
+            # 返回查询结果
+            return JsonResponse({"result": str(safe_locals['result'])})
+        
+
+        except Exception as e:
+            print(f"Error occurred: {str(e)}")
+            return JsonResponse({"error": str(e)}, status=500)
+    return render(request, 'nosql_query.html')
 
 @login_required
 def select_database(request):
@@ -118,6 +219,7 @@ def clean_code_block(code_text: str) -> str:
     # 删除代码块标记
     code_text = code_text.replace("ok", "").strip()  # 去除 "ok" 以及多余空格
     code_text = re.sub(r"```python\s*", "", code_text)
+    code_text = re.sub(r"```Python\s*", "", code_text)
     code_text = re.sub(r"```", "", code_text)
     code_text = re.sub(r"^\s*sql\s*", "", code_text)
     # 删除可能出现的 'sql' 字符串
@@ -174,7 +276,7 @@ def natural_language_query(request):
             # 执行 MySQL 代码
             print("Connecting to the database...")
             connection = pymysql.connect(
-                host="localhost", user="root", password="", database="dsci551_project"
+                host="localhost", user="root", password="20020718", database="dsci551_project"
             )
             print("Connection successful!")
             cursor = connection.cursor()
