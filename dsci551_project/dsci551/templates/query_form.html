@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<file name=0 path=/Users/wangyixiu/Desktop/Dsci551-Project/dsci551_project/dsci551/templates/query_form.html><!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -31,25 +31,32 @@
 </head>
 <body>
     <h1>向数据库提问</h1>
-    <form id="queryForm" action="{% url 'natural_language_query' %}" method="post">
-        {% csrf_token %}
-        <label for="query">请输入你的查询：</label>
-        <textarea id="query" name="query" rows="4" cols="50"></textarea>
-        <br>
-        <input type="submit" value="提交">
-    </form>
+    <div id="mysql-component">
+      <template>
+        <div>
+          <h2>向数据库提问</h2>
+          <form id="queryForm" action="{% url 'natural_language_query' %}" method="post">
+            {% csrf_token %}
+            <label for="query">请输入你的查询：</label>
+            <textarea id="query" name="query" rows="4" cols="50"></textarea>
+            <br>
+            <input type="submit" value="提交">
+          </form>
 
-    <div id="result-container" class="result-container" style="display: none;">
-        <h2>查询结果：</h2>
-        <pre id="result"></pre>
+          <div id="result-container" class="result-container" style="display: none;">
+            <h2>查询结果：</h2>
+            <pre id="result"></pre>
+          </div>
+
+          <div id="error-container" class="error-container" style="display: none;">
+            <h2>错误：</h2>
+            <pre id="error"></pre>
+          </div>
+
+          <a href="{% url 'user_query_history' %}">查看我的查询历史</a>
+        </div>
+      </template>
     </div>
-
-    <div id="error-container" class="error-container" style="display: none;">
-        <h2>错误：</h2>
-        <pre id="error"></pre>
-    </div>
-
-    <a href="{% url 'user_query_history' %}">查看我的查询历史</a>
 
     <script>
         document.getElementById('queryForm').addEventListener('submit', function(event) {
@@ -87,3 +94,4 @@
     </script>
 </body>
 </html>
+</file>

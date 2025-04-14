@@ -1,4 +1,3 @@
-<!-- 文件名：register.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +16,7 @@
     </style>
 </head>
 <body>
-<div class="form-container">
+<div class="register-panel" v-if="showRegister">
     <h2>User Register</h2>
     {% if error %}
         <div class="error">{{ error }}</div>
@@ -40,9 +39,12 @@
         <div class="btn-container">
             <button type="submit">注册</button>
         </div>
+        <div class="btn-container">
+            <button type="button" @click="showRegister = false">返回首页</button>
+        </div>
     </form>
     <br>
-    <a href="{% url 'login' %}">已有账户？点击登录</a>
+    <a href="{% url 'login' %}">Already have an account? Click to login</a>
 </div>
 </body>
 </html>

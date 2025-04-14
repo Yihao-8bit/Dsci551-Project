@@ -14,21 +14,6 @@
             background-color: #f7f7f7;
         }
 
-        /* Sidebar styles */
-        .sidebar {
-            width: 250px;
-            background-color: #f4f4f4;
-            padding: 10px;
-            box-sizing: border-box;
-            overflow-y: auto;
-            border-right: 2px solid #ddd;
-            height: 100vh; /* Ensure sidebar fills the entire screen height */
-        }
-
-        .sidebar h2 {
-            margin-top: 0;
-        }
-
         .query-item {
             cursor: pointer;
             padding: 10px;
@@ -41,69 +26,56 @@
         .query-item:hover {
             background-color: #ddd;
         }
-
-        /* Main content area */
-        .content {
-            flex-grow: 1;
-            padding: 20px;
-            background-color: #fff;
-            margin-left: 250px; /* Space for the sidebar */
-            height: 100vh; /* Ensure content fills the entire height */
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-
-        .query-details {
-            display: none;
-            margin-top: 10px;
-        }
-
-        .query-details pre {
-            background-color: #f9f9f9;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            white-space: pre-wrap; 
-            word-wrap: break-word;
-        }
-
-        .query-details h3 {
-            margin-top: 0;
-        }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2>Your Query History</h2>
-        {% if query_history %}
-            <div id="query-list">
-                {% for history in query_history %}
-                    <div class="query-item" onclick="showDetails({{ history.id }}, '{{ history.query_text }}', '{{ history.llm_response|escapejs }}', '{{ history.timestamp }}')">
-                        <strong>{{ history.query_text }}</strong>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>You haven't made any queries yet.</p>
-        {% endif %}
-    </div>
+  <div id="app">
+    <component :is="'history-component'"></component>
+  </div>
 
-    <div class="content" id="query-details-container">
-        <h2>Click on a query to see the details</h2>
-    </div>
+  <template id="history-template">
+    <div>
+      <h2>查询历史</h2>
+      <div v-if="queryList.length > 0">
+        <div v-for="item in queryList" :key="item.id" class="query-item" @click="selectQuery(item)">
+          <strong>{{ item.query_text }}</strong>
+        </div>
+      </div>
+      <p v-else>你还没有提交过查询。</p>
 
-    <script>
-        // Function to display query details in the main content area
-        function showDetails(id, queryText, llmResponse, timestamp) {
-            var detailsContainer = document.getElementById("query-details-container");
-            detailsContainer.innerHTML = `
-                <h3>Query Details</h3>
-                <p><strong>Query:</strong> ${queryText}</p>
-                <div><strong>Response:</strong></div>
-                <pre>${llmResponse}</pre>
-                <div><strong>Time:</strong> ${timestamp}</div>
-            `;
+      <div v-if="selected">
+        <h3>Query Details</h3>
+        <p><strong>Query:</strong> {{ selected.query_text }}</p>
+        <div><strong>Response:</strong></div>
+        <pre>{{ selected.llm_response }}</pre>
+        <div><strong>Time:</strong> {{ selected.timestamp }}</div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    const historyComponent = {
+      template: '#history-template',
+      data() {
+        return {
+          queryList: {{ query_history_json|safe }},
+          selected: null
+        };
+      },
+      methods: {
+        selectQuery(item) {
+          this.selected = item;
         }
-    </script>
+      }
+    };
+
+    const app = Vue.createApp({
+      components: {
+        'history-component': historyComponent
+      }
+    });
+
+    app.mount('#app');
+  </script>
 </body>
 </html>

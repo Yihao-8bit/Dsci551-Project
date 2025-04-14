@@ -1,19 +1,378 @@
-<!-- templates/select_database.html -->
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Database Type</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            text-align: center;
+            padding: 60px;
+            margin: 0;
+        }
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 40px;
+            max-width: 1200px;
+            margin: auto;
+        }
+        .left-panel {
+            flex: 1;
+            min-height: 500px;
+            height: 100%;
+            background: linear-gradient(180deg, #f4f4f4 0%, #e8e8e8 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            padding: 30px 20px;
+        }
+        .right-panel {
+            flex: 1;
+            min-height: 500px;
+            height: 100%;
+            width: 50%;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: left;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .right-panel h2 {
+          font-size: 24px;
+          margin-bottom: 20px;
+          color: #222;
+        }
+        .toggle-switch {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .toggle-switch button {
+            padding: 10px 0;
+            font-size: 18px;
+            border-radius: 6px;
+            flex: 1;
+            border: none;
+            background-color: #ccc;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .toggle-switch button.active {
+            background-color: #007BFF;
+            color: white;
+        }
+        .logo {
+          width: 240px;
+          margin-bottom: 20px;
+        }
+        .welcome {
+          font-size: 20px;
+          margin-top: 10px;
+          margin-bottom: 30px;
+          color: #222;
+        }
+        textarea {
+          width: 100%;
+          max-width: 100%;
+          font-size: 16px;
+          padding: 10px;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+          resize: vertical;
+          box-sizing: border-box;
+          placeholder: "例如：查找过去一个月内销售额最高的客户";
+        }
+        input[type="submit"] {
+          margin-top: 12px;
+          padding: 12px 24px;
+          font-size: 16px;
+          background-color: #007BFF;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+        input[type="submit"]:hover {
+          background-color: #0056b3;
+        }
+        .history-drawer {
+          position: absolute;
+          top: 60px;
+          left: 0;
+          width: 50vw;
+          height: calc(100% - 60px);
+          background-color: #f4f4f4;
+          box-shadow: 2px 0 6px rgba(0,0,0,0.1);
+          overflow-y: auto;
+          z-index: 10;
+          padding: 10px;
+        }
+        .history-toggle-btn {
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          z-index: 11;
+          padding: 8px 16px;
+          font-size: 16px;
+          background-color: #007BFF;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+        .history-toggle-btn:hover {
+          background-color: #0056b3;
+        }
+        .history-toggle-btn.active {
+          background-color: #0056b3;
+        }
+        .error-container {
+          margin-top: 20px;
+          padding: 10px;
+          border: 1px solid red;
+          background-color: #fdd;
+          max-width: 80%;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .query-item:hover {
+          background-color: #e1eaff;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .query-item.active {
+          border-left: 4px solid #007BFF;
+          background-color: #ddeeff;
+        }
+        .fade-enter-active, .fade-leave-active {
+          transition: opacity 0.3s ease;
+        }
+        .fade-enter-from, .fade-leave-to {
+          opacity: 0;
+        }
+    </style>
 </head>
 <body>
-    <h1>请选择您要使用的数据库类型</h1>
+<template id="mysql-template">
+  <div>
+    <h2>Ask the database（MySQL）</h2>
+    <form id="queryForm" @submit.prevent="submitQuery">
+      {% csrf_token %}
+      <label for="query">input your query:</label>
+      <textarea id="query" v-model="query" rows="4" cols="50" placeholder="例如：查找过去一个月内销售额最高的客户"></textarea>
+      <br>
+      <input type="submit" value="submit">
+    </form>
 
-    <!-- MySQL Button (currently disabled) -->
-    <button id="mysql_button" onclick="location.href='{% url 'natural_language_query' %}'">MySQL 查询</button><br><br>
+    <div v-if="error" class="error-container">
+      <h3>Error:</h3>
+      <pre>{{ error }}</pre>
+    </div>
 
-    <!-- NoSQL Button (currently enabled) -->
-    <button id="nosql_button" onclick="location.href='{% url 'nosql_query' %}'">NoSQL 查询</button>
+    <div v-if="result" class="result-container">
+      <h3>query result:</h3>
+      <pre>{{ formattedResult }}</pre>
+      <button @click="exportResult">导出为 CSV</button>
+    </div>
+    <!-- <a href="{% url 'user_query_history' %}">查看我的查询历史</a> -->
+  </div>
+</template>
+
+<template id="history-template">
+  <div style="display: flex; height: 100%;">
+    <!-- Sidebar -->
+    <div style="width: 250px; background-color: #f4f4f4; padding: 10px; box-sizing: border-box; overflow-y: auto; border-right: 2px solid #ddd;">
+      <h2 style="margin-top: 0;">Your Query History</h2>
+      <div v-if="queryList.length > 0">
+        <div v-for="item in queryList" :key="item.id" class="query-item" @click="selectQuery(item)"
+             style="cursor: pointer; padding: 10px; border-bottom: 1px solid #ccc; margin-bottom: 5px; background-color: #fff; border-radius: 4px;">
+          <strong>{{ item.query_text }}</strong>
+        </div>
+      </div>
+      <p v-else>You haven't made any queries yet.</p>
+    </div>
+
+    <!-- Main content area -->
+    <div style="flex-grow: 1; padding: 30px; background-color: #fff; box-sizing: border-box; overflow-y: auto; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: left;">
+      <div v-if="selected">
+        <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">Query Details</h2>
+        <p><strong>Query:</strong> {{ selected.query_text }}</p>
+        <div><strong>Response:</strong></div>
+        <pre style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word;">{{ selected.llm_response }}</pre>
+        <div><strong>Time:</strong> {{ selected.timestamp }}</div>
+      </div>
+      <div v-else>
+        <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">Click on a query to see the details</h2>
+      </div>
+    </div>
+  </div>
+</template>
+
+  <div id="app" class="main-container">
+    <button class="history-toggle-btn" :class="{ active: showHistory }" @click="toggleHistory">query history</button>
+    <!-- 左侧：logo + 欢迎 + 滑块 -->
+    <div class="left-panel">
+      <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
+      <div class="welcome">welcome! {{ request.user.username }}!</div>
+      <div class="toggle-switch">
+        <button type="button" :class="{ active: dbType === 'mysql' }" @click="dbType = 'mysql'">MySQL</button>
+        <button type="button" :class="{ active: dbType === 'nosql' }" @click="dbType = 'nosql'">NoSQL</button>
+      </div>
+    </div>
+    
+    <div class="history-drawer" v-show="showHistory">
+      <component is="history-component"></component>
+    </div>
+
+    <!-- 右侧：查询模块 -->
+    <div class="right-panel" @click="closeHistory">
+      <transition name="fade">
+        <component :is="currentComponent"></component>
+      </transition>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    const mysqlComponent = {
+      template: '#mysql-template',
+      data() {
+        return {
+          query: '',
+          result: null,
+          error: null
+        };
+      },
+      computed: {
+        formattedResult() {
+          return JSON.stringify(this.result, null, 2);
+        }
+      },
+      methods: {
+        submitQuery() {
+          const formData = new FormData();
+          formData.append('query', this.query);
+          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+          fetch("{% url 'natural_language_query' %}", {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.result) {
+              this.result = data.result;
+              this.error = null;
+              this.$root.showResult = true;
+            } else if (data.error) {
+              this.result = null;
+              this.error = data.error;
+            }
+          })
+          .catch(err => {
+            this.result = null;
+            this.error = 'error occured:' + err;
+          });
+        },
+        exportResult() {
+          if (!this.result || this.result.length === 0) return;
+          const items = this.result;
+          const headers = Object.keys(items[0]);
+          const csvRows = [headers.join(',')];
+          for (const row of items) {
+            csvRows.push(headers.map(h => JSON.stringify(row[h] ?? '')).join(','));
+          }
+          const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'query_result.csv';
+          link.click();
+          window.URL.revokeObjectURL(url);
+        }
+      }
+    };
+
+    const historyComponent = {
+      template: '#history-template',
+      data() {
+        return {
+          queryList: {{ query_history_json|safe }},
+          selected: null
+        };
+      },
+      methods: {
+        selectQuery(item) {
+          this.selected = item;
+        }
+      }
+    };
+
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          dbType: 'mysql',
+          showHistory: false,
+          showResult: false
+        };
+      },
+      computed: {
+        currentComponent() {
+          return this.dbType === 'mysql'
+            ? 'mysql-component'
+            : this.dbType === 'nosql'
+            ? 'nosql-component'
+            : null;
+        }
+      },
+      methods: {
+        toggleHistory() {
+          this.showHistory = !this.showHistory;
+        },
+        closeHistory() {
+          if (this.showHistory) {
+            this.showHistory = false;
+          }
+        },
+        handleGlobalClick(event) {
+          const historyPanel = document.querySelector('.history-drawer');
+          const toggleBtn = document.querySelector('.history-toggle-btn');
+          if (
+            this.showHistory &&
+            historyPanel &&
+            !historyPanel.contains(event.target) &&
+            toggleBtn &&
+            !toggleBtn.contains(event.target)
+          ) {
+            this.showHistory = false;
+          }
+        }
+      },
+      mounted() {
+        document.addEventListener('click', this.handleGlobalClick);
+      },
+      unmounted() {
+        document.removeEventListener('click', this.handleGlobalClick);
+      },
+      components: {
+        'mysql-component': mysqlComponent,
+        'nosql-component': {
+          template: `<div><h2>NoSQL 查询界面</h2><p>这里是 NoSQL 的查询模块</p></div>`
+        },
+        'history-component': historyComponent
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>

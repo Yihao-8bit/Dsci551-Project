@@ -1,30 +1,8 @@
-<!-- 文件名：login.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>User Login</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 50px; }
-        .form-container { max-width: 400px; margin: 0 auto; }
-        .input-row { margin-bottom: 15px; }
-        .input-row label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .input-row input { width: 100%; padding: 8px; box-sizing: border-box; }
-        .btn-container { text-align: center; }
-        button { padding: 10px 20px; cursor: pointer; }
-        .error { color: red; text-align: center; }
-    </style>
-</head>
-<body>
-<div class="form-container">
+<div class="login-panel" v-if="showLogin">
     <h2>User Login</h2>
-    {% if error %}
-        <div class="error">{{ error }}</div>
-    {% endif %}
+    <div class="error" v-if="error">{{ error }}</div>
 
-    <form method="post" action="{% url 'login' %}">
-        {% csrf_token %}
+    <form method="post" action="/login/">
         <div class="input-row">
             <label for="username">用户名</label>
             <input type="text" name="username" id="username" required>
@@ -36,9 +14,10 @@
         <div class="btn-container">
             <button type="submit">登录</button>
         </div>
+        <div class="btn-container">
+            <button @click="showLogin = false" type="button">返回首页</button>
+        </div>
     </form>
     <br>
-    <a href="{% url 'register' %}">没有账户？点击注册</a>
+    <a href="{% url'register'%}">没有账户？点击注册</a>
 </div>
-</body>
-</html>
