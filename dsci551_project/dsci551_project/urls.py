@@ -40,6 +40,7 @@ urlpatterns = [
     path('logout/', views.user_logout, name='logout'),
 
     # 查询页面
+    path('connect/', views.connect_database, name='connect_database'), 
     path('query/', views.natural_language_query, name='natural_language_query'),
     path('history/', views.user_query_history, name='user_query_history'), 
 
