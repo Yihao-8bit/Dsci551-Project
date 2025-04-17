@@ -15,7 +15,7 @@ from django.http import JsonResponse
 from .models import UserQueryHistory
 from django.contrib.auth.decorators import login_required
 from pymongo import MongoClient
-
+from django.contrib import messages
 @login_required
 
 def connect_database(request):
@@ -188,21 +188,40 @@ def home(request):
     return render(request, 'home.html')
 
 # 用户注册视图
-def user_register(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        password2 = request.POST.get('password2')  # 确认密码字段
+# def user_register(request):
+#     if request.method == 'POST':
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+#         password2 = request.POST.get('password2')  # 确认密码字段
         
-        if password == password2:
-            user = User.objects.create_user(username=username, password=password)
-            user.save()
-            return redirect('login')  # 注册成功后，跳转到登录页面
-        else:
-            return render(request, 'register.html', {'error': '两次输入的密码不一致。'})
+#         if password == password2:
+#             user = User.objects.create_user(username=username, password=password)
+#             user.save()
+#             return redirect('login')  # 注册成功后，跳转到登录页面
+#         else:
+#             return render(request, 'register.html', {'error': '两次输入的密码不一致。'})
     
-    return render(request, 'register.html')
+#     return render(request, 'register.html')
+def user_register(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        password2 = request.POST.get("password2")
 
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "用户名已存在，请换一个！")
+            return render(request, "home.html", {"show_register": True})
+            # return redirect("register")
+
+        if password != password2:
+            messages.error(request, "两次输入的密码不一致")
+            return redirect("register")
+
+        User.objects.create_user(username=username, password=password)
+        messages.success(request, "注册成功，请登录！")
+        return redirect("login")
+
+    return render(request, "home.html")
 
 
 def user_login(request):
@@ -376,4 +395,3 @@ def natural_language_query(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return render(request, 'query_form.html')
-

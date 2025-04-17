@@ -1,3 +1,4 @@
+{% load static %}
 <div class="login-panel" v-if="showLogin">
     <h2>User Login</h2>
     <div class="error" v-if="error">{{ error }}</div>
@@ -19,5 +20,5 @@
         </div>
     </form>
     <br>
-    <a href="{% url'register'%}">没有账户？点击注册</a>
+    <a href="{% url 'home' %}">没注册账号？点击回首页</a>
 </div>

@@ -1,3 +1,4 @@
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -8,24 +9,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             font-family: 'Inter', 'Helvetica Neue', sans-serif;
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
             text-align: center;
             padding: 60px;
             margin: 0;
+            overflow: hidden;
         }
         .main-container {
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             gap: 40px;
             max-width: 1200px;
             margin: auto;
         }
         .left-panel {
             flex: 1;
-            min-height: 500px;
+            min-height: 800px;
             height: 100%;
+            min-width:50%;
             background: linear-gradient(180deg, #f4f4f4 0%, #e8e8e8 100%);
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
@@ -33,15 +41,17 @@
         }
         .right-panel {
             flex: 1;
-            min-height: 500px;
+            min-height: 800px;
             height: 100%;
-            width: 50%;
+            min-width:50%;
+            width: 200%;
             background: white;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             text-align: left;
             transition: opacity 0.3s ease-in-out;
+            overflow-y: auto;
         }
         .right-panel h2 {
           font-size: 24px;
@@ -187,6 +197,45 @@
   </div>
 </template>
 
+<template id="nosql-template">
+  <div>
+    <h2>Ask the database（NoSQL）</h2>
+ 
+    <form id="mongoqueryForm" action="{% url 'nosql_mongo_query' %}" method="post">
+        {% csrf_token %}
+        <label for="mongo_data_link_query">MongoDB link:</label>
+        <textarea id="mongo_data_link_query" name="data_link_query" rows="4" cols="50"></textarea>
+        <label for="mongo_query">Your MongoDB Query:</label>
+        <textarea id="mongo_query" name="mongo_query" rows="4" cols="50"></textarea>
+        <br>
+        <input type="submit" value="Submit Mongo Query">
+    </form>
+ 
+    <form id="firebasequeryForm" action="{% url 'nosql_query' %}" method="post">
+        {% csrf_token %}
+        <label for="firebase_data_link_query">Firebase link:</label>
+        <textarea id="firebase_data_link_query" name="data_link_query" rows="4" cols="50"></textarea>
+        <label for="firebase_query">Your Firebase Query:</label>
+        <textarea id="firebase_query" name="firebase_query" rows="4" cols="50"></textarea>
+        <br>
+        <input type="submit" value="Submit Firebase Query">
+    </form>
+ 
+    <div id="result-container" class="result-container" style="display: none;">
+        <h2>Query Result:</h2>
+        <pre id="result"></pre>
+    </div>
+ 
+    <div id="error-container" class="error-container" style="display: none;">
+        <h2>Error:</h2>
+        <pre id="error"></pre>
+    </div>
+ 
+    <a href="{% url 'user_query_history' %}">View Query History</a>
+  
+  </div>
+</template>
+
 <template id="history-template">
   <div style="display: flex; height: 100%;">
     <!-- Sidebar -->
@@ -217,6 +266,10 @@
   </div>
 </template>
 
+  <form action="{% url 'home' %}" method="post" style="position: absolute; top: 20px; right: 20px;">
+    {% csrf_token %}
+    <input type="submit" value="log out" style="padding: 10px 20px; background-color: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer;">
+  </form>
   <div id="app" class="main-container">
     <button class="history-toggle-btn" :class="{ active: showHistory }" @click="toggleHistory">query history</button>
     <!-- 左侧：logo + 欢迎 + 滑块 -->
@@ -306,7 +359,7 @@
       template: '#history-template',
       data() {
         return {
-          queryList: {{ query_history_json|safe }},
+          queryList: {{ query_history_json|default:"[]"|safe }},
           selected: null
         };
       },
@@ -368,7 +421,7 @@
       components: {
         'mysql-component': mysqlComponent,
         'nosql-component': {
-          template: `<div><h2>NoSQL 查询界面</h2><p>这里是 NoSQL 的查询模块</p></div>`
+          template: '#nosql-template'
         },
         'history-component': historyComponent
       }

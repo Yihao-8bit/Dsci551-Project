@@ -120,7 +120,7 @@
         </div>
       </div>
 
-      <div class="right-panel" v-if="showLogin">
+      <div class="right-panel" v-show="showLogin">
         <div class="login-panel">
           <h2>User Login</h2>
           <form method="post" action="/login/">
@@ -145,7 +145,14 @@
         </div>
       </div>
 
-      <div class="right-panel" v-if="showRegister">
+      <div class="right-panel" v-show="showRegister">
+        {% if messages %}
+          <ul class="messages">
+            {% for message in messages %}
+              <li style="color: red; font-weight: bold;">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
         <div class="register-panel">
           <h2>User Register</h2>
           <form method="post" action="{% url 'register' %}">
