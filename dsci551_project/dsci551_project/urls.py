@@ -43,7 +43,7 @@ urlpatterns = [
     path('connect/', views.connect_database, name='connect_database'), 
     path('query/', views.natural_language_query, name='natural_language_query'),
     path('history/', views.user_query_history, name='user_query_history'), 
-
+    # path("natural-language-query/", views.natural_language_query, name="natural_language_query")
     path('select_database/', views.select_database, name='select_database'),
     path('nosql_query/', views.nosql_query, name='nosql_query'),
     path('nosql_mongo_query/', views.nosql_mongo_query, name='nosql_mongo_query'),

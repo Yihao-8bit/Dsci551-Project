@@ -43,12 +43,12 @@ def connect_database(request):
             }
 
             connection.close()  # 连接成功后立即关闭连接
-            return redirect('natural_language_query')  # 连接成功，跳转到查询页面
+            return JsonResponse({'success': True})
 
         except pymysql.MySQLError as e:
-            return render(request, 'query_form.html', {'error': f"数据库连接失败: {str(e)}"})
+            return JsonResponse({'error': f"数据库连接失败: {str(e)}"}, status=500)
 
-    return render(request, 'query_form.html')
+    return JsonResponse({'error': '无效请求'}, status=400)
 
 
 @login_required
@@ -158,7 +158,19 @@ def nosql_mongo_query(request):
 
 @login_required
 def select_database(request):
-    return render(request, 'select_database.html')  # 渲染数据库选择页面
+    history = UserQueryHistory.objects.filter(user=request.user).order_by('-timestamp')
+    history_data = [
+        {
+            'id': h.id,
+            'query_text': h.query_text,
+            'llm_response': h.llm_response,
+            'timestamp': h.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        } for h in history
+    ]
+
+    return render(request, 'select_database.html', {
+        'query_history_json': json.dumps(history_data, ensure_ascii=False)
+    })
 
 
 def get_db_schema():

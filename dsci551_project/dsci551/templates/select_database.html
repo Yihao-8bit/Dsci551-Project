@@ -21,6 +21,19 @@
             margin: 0;
             overflow: hidden;
         }
+        .loading-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(255, 255, 255, 0.7);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex-direction: column;
+          z-index: 100;
+        }
         .main-container {
             display: flex;
             justify-content: center;
@@ -169,31 +182,91 @@
         .fade-enter-from, .fade-leave-to {
           opacity: 0;
         }
+        .loading-spinner {
+          display: inline-block;
+          width: 30px;
+          height: 30px;
+          border: 4px solid rgba(0, 123, 255, 0.2);
+          border-top-color: #007BFF;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 20px auto;
+        }
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
     </style>
 </head>
 <body>
 <template id="mysql-template">
-  <div>
-    <h2>Ask the database（MySQL）</h2>
-    <form id="queryForm" @submit.prevent="submitQuery">
+  <div style="max-height: 700px; overflow-y: auto;">
+    <h1>连接到你的数据库（MySQL）</h1>
+ 
+    <!-- 数据库连接表单 -->
+    <form id="dbForm" v-if="!hideConnectionForm">
       {% csrf_token %}
-      <label for="query">input your query:</label>
-      <textarea id="query" v-model="query" rows="4" cols="50" placeholder="例如：查找过去一个月内销售额最高的客户"></textarea>
+      <label for="host">数据库主机：</label>
+      <input type="text" id="host" name="host" required>
       <br>
-      <input type="submit" value="submit">
+      <label for="username">数据库用户名：</label>
+      <input type="text" id="username" name="username" required>
+      <br>
+      <label for="password">数据库密码：</label>
+      <input type="password" id="password" name="password">
+      <br>
+      <label for="dbname">数据库名：</label>
+      <input type="text" id="dbname" name="dbname" required>
+      <br>
+      <input type="submit" value="连接数据库" @click.prevent="connectDatabase">
     </form>
-
-    <div v-if="error" class="error-container">
-      <h3>Error:</h3>
-      <pre>{{ error }}</pre>
+ 
+    <!-- 查询表单 -->
+    <div id="queryForm" class="result-container" v-if="showQueryForm">
+      <h2>请输入查询</h2>
+      <form @submit.prevent="submitQuery">
+        {% csrf_token %}
+        <label for="query">请输入你的查询：</label>
+        <textarea id="query" name="query" rows="4" cols="50" v-model="query"></textarea>
+        <br>
+        <input type="submit" value="提交查询">
+      </form>
+ 
+      <!-- 返回数据库连接页面按钮 -->
+      <input type="submit" value="返回数据库连接" @click.prevent="showQueryForm = false; hideConnectionForm = false;">
     </div>
-
-    <div v-if="result" class="result-container">
-      <h3>query result:</h3>
-      <pre>{{ formattedResult }}</pre>
-      <button @click="exportResult">导出为 CSV</button>
+ 
+    <!-- 查询结果区域 -->
+    <!-- 加载动画 -->
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <div style="text-align: center; margin-top: 10px;">正在查询，请稍候...</div>
     </div>
-    <!-- <a href="{% url 'user_query_history' %}">查看我的查询历史</a> -->
+    <div id="result-container" class="result-container" v-if="result">
+      <h2>查询结果：</h2>
+      <div v-if="result.length === 0" style="color: #888;">无数据返回</div>
+      <table v-else class="table" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; width: 100%; margin-top: 10px;">
+        <thead>
+          <tr>
+            <th v-for="key in Object.keys(result[0])">{{ key }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in result">
+            <td v-for="key in Object.keys(row)" v-text="row[key]"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+ 
+    <!-- 错误信息区域 -->
+    <div id="error-container" class="error-container" v-if="error">
+      <h2>错误：</h2>
+      <pre id="error"></pre>
+    </div>
+ 
+    <a href="{% url 'user_query_history' %}">查看我的查询历史</a>
   </div>
 </template>
 
@@ -252,12 +325,13 @@
 
     <!-- Main content area -->
     <div style="flex-grow: 1; padding: 30px; background-color: #fff; box-sizing: border-box; overflow-y: auto; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: left;">
-      <div v-if="selected">
+      <div v-if="selectedQuery && selectedQuery.query_text">
         <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">Query Details</h2>
-        <p><strong>Query:</strong> {{ selected.query_text }}</p>
+        <p><strong>Query:</strong> <span v-if="selectedQuery.query_text">{{ selectedQuery.query_text }}</span><span v-else>暂无查询</span></p>
         <div><strong>Response:</strong></div>
-        <pre style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word;">{{ selected.llm_response }}</pre>
-        <div><strong>Time:</strong> {{ selected.timestamp }}</div>
+        <pre v-if="selectedQuery.llm_response" style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word;">{{ selectedQuery.llm_response }}</pre>
+        <pre v-else style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word;">暂无响应内容</pre>
+        <div><strong>Time:</strong> <span v-if="selectedQuery.timestamp">{{ selectedQuery.timestamp }}</span><span v-else>未知时间</span></div>
       </div>
       <div v-else>
         <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">Click on a query to see the details</h2>
@@ -283,7 +357,7 @@
     </div>
     
     <div class="history-drawer" v-show="showHistory">
-      <component is="history-component"></component>
+      <component is="history-component" :query-list="queryHistory" :selected-query="selectedQuery" @select="selectedQuery = $event"></component>
     </div>
 
     <!-- 右侧：查询模块 -->
@@ -302,7 +376,10 @@
         return {
           query: '',
           result: null,
-          error: null
+          error: null,
+          showQueryForm: false,       // ✅ 新增
+          hideConnectionForm: false,   // ✅ 新增
+          isLoading: false
         };
       },
       computed: {
@@ -312,60 +389,88 @@
       },
       methods: {
         submitQuery() {
-          const formData = new FormData();
-          formData.append('query', this.query);
-          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            this.isLoading = true;
 
-          fetch("{% url 'natural_language_query' %}", {
-            method: 'POST',
-            body: formData
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.result) {
-              this.result = data.result;
-              this.error = null;
-              this.$root.showResult = true;
-            } else if (data.error) {
+            const formData = new FormData();
+            formData.append('query', this.query);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            fetch("{% url 'natural_language_query' %}", {
+              method: 'POST',
+              body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+              this.isLoading = false;
+              if (data.result) {
+                this.result = data.result;
+                this.error = null;
+                this.$root.showResult = true;
+              } else if (data.error) {
+                this.result = null;
+                this.error = data.error;
+              }
+            })
+            .catch(err => {
+              this.isLoading = false;
               this.result = null;
-              this.error = data.error;
+              this.error = 'error occurred: ' + err;
+            });
+          },
+          exportResult() {
+            if (!this.result || this.result.length === 0) return;
+            const items = this.result;
+            const headers = Object.keys(items[0]);
+            const csvRows = [headers.join(',')];
+            for (const row of items) {
+              csvRows.push(headers.map(h => JSON.stringify(row[h] ?? '')).join(','));
             }
-          })
-          .catch(err => {
-            this.result = null;
-            this.error = 'error occured:' + err;
-          });
-        },
-        exportResult() {
-          if (!this.result || this.result.length === 0) return;
-          const items = this.result;
-          const headers = Object.keys(items[0]);
-          const csvRows = [headers.join(',')];
-          for (const row of items) {
-            csvRows.push(headers.map(h => JSON.stringify(row[h] ?? '')).join(','));
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'query_result.csv';
+            link.click();
+            window.URL.revokeObjectURL(url);
+          },
+          connectDatabase(event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('host', document.getElementById('host').value);
+            formData.append('username', document.getElementById('username').value);
+            formData.append('password', document.getElementById('password').value);
+            formData.append('dbname', document.getElementById('dbname').value);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            fetch("{% url 'connect_database' %}", {
+              method: 'POST',
+              body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                this.showQueryForm = true;
+                this.hideConnectionForm = true;
+                this.result = null;
+                this.error = null;
+              } else {
+                alert(data.error || '连接失败');
+              }
+            })
+            .catch(err => {
+              alert('连接错误: ' + err);
+            });
           }
-          const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = 'query_result.csv';
-          link.click();
-          window.URL.revokeObjectURL(url);
-        }
       }
     };
 
     const historyComponent = {
       template: '#history-template',
-      data() {
-        return {
-          queryList: {{ query_history_json|default:"[]"|safe }},
-          selected: null
-        };
-      },
+      props: ['queryList', 'selectedQuery'],
       methods: {
         selectQuery(item) {
-          this.selected = item;
+          this.$emit('select', item);
         }
       }
     };
@@ -377,7 +482,9 @@
         return {
           dbType: 'mysql',
           showHistory: false,
-          showResult: false
+          showResult: false,
+          queryHistory: {{ query_history_json|default:"[]"|safe }},
+          selectedQuery: null,
         };
       },
       computed: {
