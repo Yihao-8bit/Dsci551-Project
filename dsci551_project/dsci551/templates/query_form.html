@@ -27,66 +27,129 @@
             margin-left: auto;
             margin-right: auto;
         }
+        .button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
-    <h1>向数据库提问</h1>
-    <div id="mysql-component">
-      <template>
-        <div>
-          <h2>向数据库提问</h2>
-          <form id="queryForm" action="{% url 'natural_language_query' %}" method="post">
+
+    <h1>连接到你的数据库</h1>
+    
+    <!-- 数据库连接表单 -->
+    <form id="dbForm" action="{% url 'connect_database' %}" method="post">
+        {% csrf_token %}
+        <label for="host">数据库主机：</label>
+        <input type="text" id="host" name="host" required>
+        <br>
+        <label for="username">数据库用户名：</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">数据库密码：</label>
+        <input type="password" id="password" name="password">
+        <br>
+        <label for="dbname">数据库名：</label>
+        <input type="text" id="dbname" name="dbname" required>
+        <br>
+        <input type="submit" value="连接数据库">
+    </form>
+
+    <!-- 查询表单，默认隐藏，只有在连接成功后显示 -->
+    <div id="queryForm" class="result-container" style="display: none;">
+        <h1>请输入查询</h1>
+        <form action="{% url 'natural_language_query' %}" method="post">
             {% csrf_token %}
             <label for="query">请输入你的查询：</label>
             <textarea id="query" name="query" rows="4" cols="50"></textarea>
             <br>
-            <input type="submit" value="提交">
-          </form>
+            <input type="submit" value="提交查询">
+        </form>
 
-          <div id="result-container" class="result-container" style="display: none;">
-            <h2>查询结果：</h2>
-            <pre id="result"></pre>
-          </div>
-
-          <div id="error-container" class="error-container" style="display: none;">
-            <h2>错误：</h2>
-            <pre id="error"></pre>
-          </div>
-
-          <a href="{% url 'user_query_history' %}">查看我的查询历史</a>
-        </div>
-      </template>
+        <!-- 返回数据库连接页面按钮 -->
+        <button class="button" onclick="goBackToDbForm()">返回数据库连接</button>
     </div>
 
+    <div id="result-container" class="result-container" style="display: none;">
+        <h2>查询结果：</h2>
+        <pre id="result"></pre>
+    </div>
+    
+    <div id="error-container" class="error-container" style="display: none;">
+        <h2>错误：</h2>
+        <pre id="error"></pre>
+    </div>
+    
+    <a href="{% url 'user_query_history' %}">查看我的查询历史</a>
+
     <script>
+        {% if request.session.db_connection %}
+            // 如果数据库连接成功，显示查询表单
+            document.getElementById('queryForm').style.display = 'block';  
+            // 隐藏数据库连接表单
+            document.getElementById('dbForm').style.display = 'none';     
+        {% endif %}
+
+        // 点击 "返回数据库连接" 按钮时调用的函数
+        function goBackToDbForm() {
+            // 隐藏查询表单和查询结果
+            document.getElementById('queryForm').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            document.getElementById('error-container').style.display = 'none';
+            // 显示数据库连接表单
+            document.getElementById('dbForm').style.display = 'block';
+        }
+
         document.getElementById('queryForm').addEventListener('submit', function(event) {
             event.preventDefault();  // 阻止表单提交的默认行为
-
+        
             var query = document.getElementById('query').value;
             var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
+        
             var formData = new FormData();
             formData.append('query', query);
             formData.append('csrfmiddlewaretoken', csrfToken);
-
+        
             fetch("{% url 'natural_language_query' %}", {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
+                console.log('Response Data:', data);  // 调试：检查返回的数据
+        
+                // 检查返回的数据是否包含 result 或 error 字段
                 if (data.result) {
-                    document.getElementById('result').textContent = JSON.stringify(data.result, null, 2);
+                    var resultElement = document.getElementById('result');
+                    if (resultElement) {  // 确保 result 元素存在
+                        resultElement.textContent = JSON.stringify(data.result, null, 2);
+                    }
+        
                     document.getElementById('result-container').style.display = 'block';
                     document.getElementById('error-container').style.display = 'none';
                 } else if (data.error) {
-                    document.getElementById('error').textContent = data.error;
+                    var errorElement = document.getElementById('error');
+                    if (errorElement) {  // 确保 error 元素存在
+                        errorElement.textContent = data.error;
+                    }
+        
                     document.getElementById('error-container').style.display = 'block';
                     document.getElementById('result-container').style.display = 'none';
                 }
             })
             .catch(error => {
-                document.getElementById('error').textContent = '发生错误：' + error;
+                console.error('Fetch error:', error);  // 调试：检查 fetch 的错误
+                var errorElement = document.getElementById('error');
+                if (errorElement) {
+                    errorElement.textContent = '发生错误：' + error;
+                }
                 document.getElementById('error-container').style.display = 'block';
                 document.getElementById('result-container').style.display = 'none';
             });
