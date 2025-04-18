@@ -199,21 +199,7 @@ def user_query_history(request):
 def home(request):
     return render(request, 'home.html')
 
-# 用户注册视图
-# def user_register(request):
-#     if request.method == 'POST':
-#         username = request.POST.get('username')
-#         password = request.POST.get('password')
-#         password2 = request.POST.get('password2')  # 确认密码字段
-        
-#         if password == password2:
-#             user = User.objects.create_user(username=username, password=password)
-#             user.save()
-#             return redirect('login')  # 注册成功后，跳转到登录页面
-#         else:
-#             return render(request, 'register.html', {'error': '两次输入的密码不一致。'})
-    
-#     return render(request, 'register.html')
+
 def user_register(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -353,7 +339,7 @@ def natural_language_query(request):
         MYSQL_SYSTEM_INSTRUCTION = (
             f"You are my MySQL database assistant. Here is the database schema:\n{db_schema}\n"
             "I will give you natural language commands related to exploring the schema, querying, inserting, updating, and deleting. "
-            "You must ONLY return valid SQL queries for MySQL. "
+            "You must ONLY return valid SQL command for MySQL. "
             "Do not include Python code such as import statements, and do not return any Python code for execution. "
             "Only return SQL queries that can be directly executed in MySQL. "
             "If you understand, output only 'ok'."
@@ -385,6 +371,8 @@ def natural_language_query(request):
             print("Connection successful!")
             cursor = connection.cursor()
             cursor.execute(safe_code)
+            connection.commit()  # 提交事务
+
             result = cursor.fetchall()
             if not result:
                 print("No results found.")
@@ -396,7 +384,16 @@ def natural_language_query(request):
             query_history.save()
 
             # 返回查询结果
-            return JsonResponse({"result": result})
+            if safe_code.strip().lower().startswith("insert"):
+                return JsonResponse({"message": "Data insert successful"})
+            elif safe_code.strip().lower().startswith("update"):
+                return JsonResponse({"message": "Data update successful"})
+            elif safe_code.strip().lower().startswith("delete"):
+                return JsonResponse({"message": "Data delete successful"})
+            elif safe_code.strip().lower().startswith("select"):
+                return JsonResponse({"result": result})
+            else:
+                return JsonResponse({"message": "The operation was successful, but the operation type could not be recognized。"})
         
         except pymysql.MySQLError as e:
             print(f"Database error: {e}")
