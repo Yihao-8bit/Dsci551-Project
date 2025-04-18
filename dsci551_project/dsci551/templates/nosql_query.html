@@ -3,7 +3,7 @@
 
     <form id="mongoqueryForm" action="{% url 'nosql_mongo_query' %}" method="post">
         {% csrf_token %}
-        <label for="data_link_query">Please enter your MongoDB link:</label>
+        <label for="data_link_query">Please enter your MongoDB link and the name of your dataset, seperate with a ",":</label>
         <textarea id="mongo_data_link_query" name="data_link_query" rows="4" cols="50"></textarea>
         <label for="mongo_query">请输入你的查询：</label>
         <textarea id="mongo_query" name="mongo_query" rows="4" cols="50"></textarea>
