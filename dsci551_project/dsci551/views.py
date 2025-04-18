@@ -14,8 +14,12 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from .models import UserQueryHistory
 from django.contrib.auth.decorators import login_required
-from pymongo import MongoClient
 from django.contrib import messages
+from pymongo import MongoClient
+from pymongo.cursor import Cursor
+from pymongo.command_cursor import CommandCursor
+from bson.json_util import dumps
+from pymongo.results import InsertOneResult, DeleteResult, UpdateResult
 @login_required
 
 def connect_database(request):
