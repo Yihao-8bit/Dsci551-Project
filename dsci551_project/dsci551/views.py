@@ -66,7 +66,7 @@ def nosql_query(request):
             "Never use any firebase_admin or other libraries, and never use Service Account."
             "Do not output any extra textual explanations or comments, only return executable Python code."
             "Only return firebase queries that can be directly executed in python. "
-            "If you understand, output only 'ok, I'm ready for your query'."
+            "If you understand, output only 'ok. I'm ready.'"
         )
 
         print(user_datalink)
@@ -111,23 +111,49 @@ def nosql_mongo_query(request):
         deepseek_api_key = "sk-c6d9cd93a21b418da5adc6ef7fcb2479"
         deepseek_api_url = "https://api.deepseek.com/v1/chat/completions"
         # 更新系统提示语
+        print(user_datalink)
+        print(user_input)
+        print()
+        uri, db_name = str(user_datalink).split(',')
+        def get_db_structure(uri, db_name, sample_size=100):
+
+            client = MongoClient(uri)
+            db = client[db_name]
+            
+            structure = {}
+
+            for coll_name in db.list_collection_names():
+                collection = db[coll_name]
+                fields = set()
+                
+                # Sample documents to infer fields
+                for doc in collection.find().limit(sample_size):
+                    fields.update(doc.keys())
+
+                structure[coll_name] = sorted(fields)
+            
+            return structure
+
+    # Usage
+
+        structure = get_db_structure(uri, db_name)
+        print(structure)
         FIREBASE_SYSTEM_INSTRUCTION = (
-            f"You are my noSQL database assistant. Here are the database links:\n{user_datalink}\n"
+            f"You are my noSQL database assistant. Here are the database links and the database they are using:\n{user_datalink}\n"
+            f"Here is the structure of that databse: \n{structure}\n"
             "using pymongo to connect to the mongodb server"
             "I will give you natural language commands related to exploring the schema, querying, inserting, updating, and deleting. "
             "find (with projection), aggregate (with $match, $group,$sort, $limit, $skip, $project). Note that $match can be before and after $group. You should also allow queries that involve joining of two collections (using $lookup)."
             "Do not output any extra textual explanations or comments, only return executable Python code. I don't need your explanation, just give me pure pure code"
+            "I want you to answer my question with real field names that exists in this database, don't assume the id named '_id'."
             "Only return pymongo code that can be directly executed in python. "
+            "Make sure each field name and collection name really exist, check the existence of filed name you will use before generating the code"
+            "Be careful with name of collection, scan through the database to get a complete structure of the database and collection"
             "store results in a variable named result"
-            "If you understand, output only 'ok, I'm ready for your query'."
+            "If you understand, output only 'ok. I'm ready.'"
         )
-
-        print(user_datalink)
-        print(user_input)
         messages = [{"role": "system", "content": FIREBASE_SYSTEM_INSTRUCTION}]
         messages.append({"role": "user", "content": user_input})
-
-        # 调用 DeepSeek API
         reasoning, content = call_deepseek(messages, deepseek_api_key, deepseek_api_url)
         if not content:
             return JsonResponse({"error": "Error processing your request."}, status=400)
@@ -146,15 +172,31 @@ def nosql_mongo_query(request):
             # 存储用户查询和 LLM 返回的结果
             query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(safe_locals['result']))
             query_history.save()
+            my_output = safe_locals['result']
+            if isinstance(my_output, CommandCursor):
+                my_output = list(my_output)
+            if isinstance(my_output, (Cursor, CommandCursor)):
+                my_output = list(my_output)
+            if isinstance( my_output, InsertOneResult):
+                print(f"Insert succeeded! New ID:{ str(my_output.inserted_id)}")
+                my_output = f"Insert succeeded! New ID:{ str(my_output.inserted_id)}"
+            elif isinstance(my_output, DeleteResult):
+                print(f"Delete Success! Deleted {my_output.deleted_count} document(s).")
+                my_output = f"Delete Success! Deleted {my_output.deleted_count} document(s)."
+            elif isinstance(my_output, UpdateResult):
+                print(f"Update Success! Matched {my_output.matched_count}, modified {my_output.modified_count}.")
+                my_output = f"Update Success! Matched {my_output.matched_count}, modified {my_output.modified_count}."
+
 
             # 返回查询结果
-            return JsonResponse({"result": str(safe_locals['result'])})
+            return JsonResponse({"result": my_output})
         
 
         except Exception as e:
             print(f"Error occurred: {str(e)}")
             return JsonResponse({"error": str(e)}, status=500)
     return render(request, 'nosql_query.html')
+
 
 @login_required
 def select_database(request):
@@ -270,7 +312,7 @@ def call_deepseek(messages, deepseek_api_key: str, deepseek_api_url: str, model=
 # 清洗代码块
 def clean_code_block(code_text: str) -> str:
     # 删除代码块标记
-    code_text = code_text.replace("ok", "").strip()  # 去除 "ok" 以及多余空格
+    code_text = code_text.replace("ok. I'm ready.", "").strip()  # 去除 "ok" 以及多余空格
     code_text = re.sub(r"```python\s*", "", code_text)
     code_text = re.sub(r"```Python\s*", "", code_text)
     code_text = re.sub(r"```", "", code_text)
@@ -342,7 +384,7 @@ def natural_language_query(request):
             "You must ONLY return valid SQL command for MySQL. "
             "Do not include Python code such as import statements, and do not return any Python code for execution. "
             "Only return SQL queries that can be directly executed in MySQL. "
-            "If you understand, output only 'ok'."
+            "If you understand, output only 'ok. I'm ready.'."
         )
 
         print(db_schema)
