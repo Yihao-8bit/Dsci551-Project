@@ -388,7 +388,7 @@ def natural_language_query(request):
             "You must ONLY return valid SQL command for MySQL. "
             "Do not include Python code such as import statements, and do not return any Python code for execution. "
             "Only return SQL queries that can be directly executed in MySQL. "
-            "If you understand, output only 'ok. I'm ready.'."
+            "If you understand, output only 'ok. I'm ready.', Don't put anything else, And when you put sql, also only put sql sentences without anything else."
         )
 
         print(db_schema)
