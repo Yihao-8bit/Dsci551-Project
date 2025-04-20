@@ -250,13 +250,13 @@
  
     <!-- 查询表单 -->
     <div id="queryForm" class="result-container" v-if="showQueryForm">
-      <h2>Please enter a query</h2>
+      <h2>Please enter your command:</h2>
       <form @submit.prevent="submitQuery">
         {% csrf_token %}
-        <label for="query">Please enter your query:</label>
+        <!-- <label for="query">Please enter your command:</label> -->
         <textarea id="query" name="query" rows="4" cols="50" v-model="query"></textarea>
         <br>
-        <input type="submit" value="Submit Query">
+        <input type="submit" value="Submit command">
       </form>
  
       <!-- 返回数据库连接页面按钮 -->
@@ -267,14 +267,14 @@
     <!-- 加载动画 -->
     <div v-if="isLoading" class="loading-overlay">
       <div class="loading-spinner"></div>
-      <div style="text-align: center; margin-top: 10px;">Inquiring, please wait...</div>
+      <div style="text-align: center; margin-top: 10px;">operating now, please wait...</div>
     </div>
 
   <div id="result-container" class="result-container" v-if="result || message">
     <h2>Query Results:</h2>
     <div v-if="feedback" style="color: green; font-weight: bold; margin-top: 10px;">{{ feedback }}</div>
     <div v-if="message" style="color: rgb(53, 129, 176); font-weight: 500; margin-bottom: 12px;" v-text="message"></div>
-    <div v-if="!result || result.length === 0" style="color: #888;">No data returned</div>
+    <div v-if="(!result || result.length === 0) && !message" style="color: #888;">No data returned</div>
     <table v-else class="table" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; width: 100%; margin-top: 10px;">
       <thead>
         <tr>
@@ -307,7 +307,7 @@
     </div>
     <div v-if="isLoading" class="loading-overlay">
       <div class="loading-spinner"></div>
-      <div style="text-align: center; margin-top: 10px;">Inquiring, please wait...</div>
+      <div style="text-align: center; margin-top: 10px;">opearting now, please wait...</div>
     </div>
     <div v-if="nosqlType === 'mongo'">
       <h2>MongoDB Query</h2>

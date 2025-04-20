@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 
 <html lang="zh">
@@ -119,9 +120,23 @@
       font-size: 20px;
       max-width: 200px;
     }
+    .popup-message {
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #ff4444;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
+  <div id="popup" class="popup-message" style="display: none;"></div>
   <!-- Vue 应用入口 -->
   <div id="app">
     <div class="main-container">
@@ -160,13 +175,6 @@
       </div>
 
       <div class="right-panel" v-show="showRegister">
-        {% if messages %}
-          <ul class="messages">
-            {% for message in messages %}
-              <li style="color: red; font-weight: bold;">{{ message }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
         <div class="register-panel">
           <h2>User Register</h2>
           <form method="post" action="{% url 'register' %}">
@@ -201,13 +209,26 @@
   <script>
     const { createApp } = Vue;
 
+    const serverMessage = "{{ popup_message|default:''|escapejs }}";
+
     createApp({
       data() {
         return {
           welcomeText: "Welcome to the inquiry system",
           showLogin: false,
-          showRegister: false
+          showRegister: false,
         };
+      },
+      mounted() {
+        console.log("serverMessage:", serverMessage);
+        if (serverMessage) {
+          const popup = document.getElementById("popup");
+          popup.textContent = serverMessage;
+          popup.style.display = "block";
+          setTimeout(() => {
+            popup.style.display = "none";
+          }, 3000);
+        }
       },
       methods: {
         goTo(path) {
@@ -220,6 +241,14 @@
           } else {
             window.location.href = `/${path}/`;
           }
+        },
+        showPopup(msg) {
+          const popup = document.getElementById("popup");
+          popup.textContent = msg;
+          popup.style.display = "block";
+          setTimeout(() => {
+            popup.style.display = "none";
+          }, 3000);
         }
       }
     }).mount("#app");

@@ -262,7 +262,8 @@ def user_query_history(request):
 
 # 主页选择页面
 def home(request):
-    return render(request, 'home.html')
+    popup_message = request.session.pop('popup_message', None)
+    return render(request, 'home.html', {"popup_message": popup_message})
 
 
 def user_register(request):
@@ -271,20 +272,27 @@ def user_register(request):
         password = request.POST.get("password")
         password2 = request.POST.get("password2")
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "用户名已存在，请换一个！")
-            return render(request, "home.html", {"show_register": True})
+    if User.objects.filter(username=username).exists():
+        request.session['popup_message'] = "Username already exists, please change it!"
+        popup_message = request.session.pop('popup_message', None)
+        return render(request, "home.html", {"show_register": True, "popup_message": popup_message})
             # return redirect("register")
 
-        if password != password2:
-            messages.error(request, "两次输入的密码不一致")
-            return redirect("register")
+    if password != password2:
+        request.session['popup_message'] = "Inconsistent passwords entered twice"
+        popup_message = request.session.pop('popup_message', None)
+        return render(request, "home.html", {"show_register": True, "popup_message": popup_message})
+            # return redirect("/")
 
-        User.objects.create_user(username=username, password=password)
-        messages.success(request, "注册成功，请登录！")
-        return redirect("/")
+    User.objects.create_user(username=username, password=password)
+    request.session['popup_message'] = "Successful registration, please log in!"
+    popup_message = request.session.pop('popup_message', None)
+    return render(request, "home.html", {"show_register": True, "popup_message": popup_message})
+    # popup_message = request.session.pop('popup_message', None)
+    # return render(request, 'home.html', {"popup_message": popup_message})
+        # return redirect("/")
 
-    return render(request, "home.html")
+    return redirect('home')
 
 
 def user_login(request):
@@ -297,8 +305,11 @@ def user_login(request):
             # 登录成功后，重定向到选择数据库页面
             return redirect('select_database')  
         else:
-            return render(request, 'login.html', {'error': '用户名或密码错误！'})
-    return render(request, 'login.html')
+            request.session['popup_message'] = 'The username or password is incorrect!'
+            popup_message = request.session.pop('popup_message', None)
+            return render(request, "home.html", {"show_register": False, "popup_message": popup_message})
+    popup_message = request.session.pop('popup_message', None)
+    return render(request, 'home.html', {"popup_message": popup_message})
 
 
 def user_logout(request):
