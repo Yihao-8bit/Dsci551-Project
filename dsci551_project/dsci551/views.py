@@ -118,7 +118,20 @@ def nosql_mongo_query(request):
         print(user_datalink)
         print(user_input)
         print()
-        uri, db_name = str(user_datalink).split(',')
+        # uri, db_name = str(user_datalink).split(',')
+        user_datalink = request.POST.get("data_link_query")
+
+        if not user_datalink or ',' not in user_datalink:
+            return JsonResponse({
+                "error": "Invalid MongoDB datalink format. Please use format: <uri>,<db_name> (e.g., mongodb://localhost:27017,dsci551)"
+            }, status=400)
+
+        try:
+            uri, db_name = user_datalink.split(',', 1)
+        except ValueError:
+            return JsonResponse({
+                "error": "MongoDB datalink must contain both URI and DB name, separated by a comma."
+            }, status=400)
         def get_db_structure(uri, db_name, sample_size=100):
 
             client = MongoClient(uri)
@@ -263,7 +276,7 @@ def user_register(request):
 
         User.objects.create_user(username=username, password=password)
         messages.success(request, "注册成功，请登录！")
-        return redirect("login")
+        return redirect("/")
 
     return render(request, "home.html")
 
@@ -419,16 +432,17 @@ def natural_language_query(request):
             cursor.execute(safe_code)
             connection.commit()  # 提交事务
 
-            result = cursor.fetchall()
-            if not result:
+            fetched_result = cursor.fetchall()
+            if not fetched_result:
                 print("No results found.")
-            print(f"Query result: {result}")
+            print(f"Query result: {fetched_result}")
+            columns = [desc[0] for desc in cursor.description]
             connection.close()
-
+ 
             # 存储用户查询和 LLM 返回的结果
-            query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(result))
+            query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(fetched_result))
             query_history.save()
-
+ 
             # 返回查询结果
             if safe_code.strip().lower().startswith("insert"):
                 return JsonResponse({"message": "Data insert successful"})
@@ -437,7 +451,8 @@ def natural_language_query(request):
             elif safe_code.strip().lower().startswith("delete"):
                 return JsonResponse({"message": "Data delete successful"})
             elif safe_code.strip().lower().startswith("select"):
-                return JsonResponse({"result": result})
+                result_dicts = [dict(zip(columns, row)) for row in fetched_result]
+                return JsonResponse({"result": result_dicts, "columns": columns})
             else:
                 return JsonResponse({"message": "The operation was successful, but the operation type could not be recognized。"})
         
