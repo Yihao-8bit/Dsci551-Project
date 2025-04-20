@@ -82,7 +82,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'dsci551_project',  # 您的数据库名称
         'USER': 'root',  # MySQL 用户名
-        'PASSWORD': '',  # MySQL 密码
+        'PASSWORD': '20020718',  # MySQL 密码
         'HOST': 'localhost',  # 数据库主机
         'PORT': '3306',  # 默认 MySQL 端口
     }

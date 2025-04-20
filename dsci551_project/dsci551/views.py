@@ -110,17 +110,17 @@ def nosql_query(request):
 @login_required
 def nosql_mongo_query(request):
     if request.method == 'POST':
-        user_datalink = request.POST.get("datalink")
+        #user_datalink = request.POST.get("datalink")
         user_input = request.POST.get('mongoquery')
         deepseek_api_key = "sk-c6d9cd93a21b418da5adc6ef7fcb2479"
         deepseek_api_url = "https://api.deepseek.com/v1/chat/completions"
         # 更新系统提示语
-        print(user_datalink)
+        #print(user_datalink)
         print(user_input)
         print()
         # uri, db_name = str(user_datalink).split(',')
         user_datalink = request.POST.get("data_link_query")
-
+        print(user_datalink)
         if not user_datalink or ',' not in user_datalink:
             return JsonResponse({
                 "error": "Invalid MongoDB datalink format. Please use format: <uri>,<db_name> (e.g., mongodb://localhost:27017,dsci551)"
@@ -134,6 +134,7 @@ def nosql_mongo_query(request):
             }, status=400)
         def get_db_structure(uri, db_name, sample_size=100):
 
+            from pymongo import MongoClient
             client = MongoClient(uri)
             db = client[db_name]
             
@@ -185,6 +186,9 @@ def nosql_mongo_query(request):
         try:
             # 执行 MySQL 代码
             #client = MongoClient("mongodb://localhost:27017/")
+            client = MongoClient(uri)
+            db = client[db_name]
+            safe_locals = {'db': db,"result": ""}
             exec(safe_code, {}, safe_locals)
             # 存储用户查询和 LLM 返回的结果
             query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(safe_locals['result']))
@@ -213,7 +217,6 @@ def nosql_mongo_query(request):
             print(f"Error occurred: {str(e)}")
             return JsonResponse({"error": str(e)}, status=500)
     return render(request, 'nosql_query.html')
-
 
 @login_required
 def select_database(request):
