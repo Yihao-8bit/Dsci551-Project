@@ -210,7 +210,10 @@ def nosql_mongo_query(request):
 
 
             # 返回查询结果
-            return JsonResponse({"result": my_output})
+            if isinstance(my_output, list):
+                return JsonResponse({"result": my_output})
+            else:
+                return JsonResponse({"message": my_output})
         
 
         except Exception as e:
