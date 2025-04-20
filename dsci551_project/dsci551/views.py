@@ -432,16 +432,17 @@ def natural_language_query(request):
             cursor.execute(safe_code)
             connection.commit()  # 提交事务
 
-            result = cursor.fetchall()
-            if not result:
+            fetched_result = cursor.fetchall()
+            if not fetched_result:
                 print("No results found.")
-            print(f"Query result: {result}")
+            print(f"Query result: {fetched_result}")
+            columns = [desc[0] for desc in cursor.description]
             connection.close()
-
+ 
             # 存储用户查询和 LLM 返回的结果
-            query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(result))
+            query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(fetched_result))
             query_history.save()
-
+ 
             # 返回查询结果
             if safe_code.strip().lower().startswith("insert"):
                 return JsonResponse({"message": "Data insert successful"})
@@ -450,7 +451,8 @@ def natural_language_query(request):
             elif safe_code.strip().lower().startswith("delete"):
                 return JsonResponse({"message": "Data delete successful"})
             elif safe_code.strip().lower().startswith("select"):
-                return JsonResponse({"result": result})
+                result_dicts = [dict(zip(columns, row)) for row in fetched_result]
+                return JsonResponse({"result": result_dicts, "columns": columns})
             else:
                 return JsonResponse({"message": "The operation was successful, but the operation type could not be recognized。"})
         

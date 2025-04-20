@@ -260,7 +260,7 @@
       </form>
  
       <!-- 返回数据库连接页面按钮 -->
-      <input type="submit" value="Back to Database Connection" @click.prevent="showQueryForm = false; hideConnectionForm = false;">
+        <input type="submit" value="Back to Database Connection" @click.prevent="showQueryForm = false; hideConnectionForm = false; result = null; error = null; message = null;">
     </div>
  
     <!-- 查询结果区域 -->
@@ -269,22 +269,25 @@
       <div class="loading-spinner"></div>
       <div style="text-align: center; margin-top: 10px;">Inquiring, please wait...</div>
     </div>
-    <div id="result-container" class="result-container" v-if="result">
-      <h2>Query Results:</h2>
-      <div v-if="result.length === 0" style="color: #888;">No data returned</div>
-      <table v-else class="table" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; width: 100%; margin-top: 10px;">
-        <thead>
-          <tr>
-            <th v-for="key in Object.keys(result[0])">{{ key }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in result">
-            <td v-for="key in Object.keys(row)" v-text="row[key]"></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+
+  <div id="result-container" class="result-container" v-if="result || message">
+    <h2>Query Results:</h2>
+    <div v-if="message" style="color: green; font-weight: 500; margin-bottom: 12px;">{{ message }}</div>
+    <div v-if="!result || result.length === 0" style="color: #888;">No data returned</div>
+    <table v-else class="table" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; width: 100%; margin-top: 10px;">
+      <thead>
+        <tr>
+          <th v-for="col in columns" :key="col" v-text="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="row in result">
+          <td v-for="col in columns" :key="col" v-text="row[col]"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
  
     <!-- 错误信息区域 -->
     <div id="error-container" class="error-container" v-if="error">
@@ -436,7 +439,9 @@
           error: null,
           showQueryForm: false, 
           hideConnectionForm: false,
-          isLoading: false
+          isLoading: false,
+          columns: [],
+          message: null
         };
       },
       computed: {
@@ -459,12 +464,21 @@
             .then(response => response.json())
             .then(data => {
               this.isLoading = false;
+              console.log("后端返回的数据是：", data);
               if (data.result) {
                 this.result = data.result;
+                this.columns = data.columns || Object.keys(data.result[0] || {});
                 this.error = null;
-                this.$root.showResult = true;
+                this.message = null;
+              } else if (data.message) {
+                this.result = null;
+                this.columns = [];
+                this.message = data.message;
+                this.error = null;
               } else if (data.error) {
                 this.result = null;
+                this.columns = [];
+                this.message = null;
                 this.error = data.error;
               }
             })
