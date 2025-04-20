@@ -423,45 +423,43 @@ def natural_language_query(request):
         # 打印清洗后的 SQL 语句（如果需要查看清洗后的 SQL） 
         print(f"清洗后的 SQL 查询语句：\n{safe_code}")
 
-        try:
-            # 执行 MySQL 代码
-            print("Connecting to the database...")
-            connection = pymysql.connect(**db_connection)
-            print("Connection successful!")
-            cursor = connection.cursor()
-            cursor.execute(safe_code)
-            connection.commit()  # 提交事务
+        
+        # 执行 MySQL 代码
+        print("Connecting to the database...")
+        connection = pymysql.connect(**db_connection)
+        print("Connection successful!")
+        cursor = connection.cursor()
+        cursor.execute(safe_code)
+        connection.commit()  # 提交事务
 
+        if cursor.description is not None: 
             fetched_result = cursor.fetchall()
             if not fetched_result:
                 print("No results found.")
             print(f"Query result: {fetched_result}")
             columns = [desc[0] for desc in cursor.description]
-            connection.close()
+
+        connection.close()
  
             # 存储用户查询和 LLM 返回的结果
-            query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(fetched_result))
-            query_history.save()
- 
+        # query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(fetched_result))
+        # query_history.save()
+
             # 返回查询结果
-            if safe_code.strip().lower().startswith("insert"):
-                return JsonResponse({"message": "Data insert successful"})
-            elif safe_code.strip().lower().startswith("update"):
-                return JsonResponse({"message": "Data update successful"})
-            elif safe_code.strip().lower().startswith("delete"):
-                return JsonResponse({"message": "Data delete successful"})
-            elif safe_code.strip().lower().startswith("select"):
+        if safe_code.strip().lower().startswith("insert"):
+            return JsonResponse({"message": "Data insert successful"})
+        elif safe_code.strip().lower().startswith("update"):
+            return JsonResponse({"message": "Data update successful"})
+        elif safe_code.strip().lower().startswith("delete"):
+            return JsonResponse({"message": "Data delete successful"})
+        elif safe_code.strip().lower().startswith("select"):
+            if cursor.description is not None: 
                 result_dicts = [dict(zip(columns, row)) for row in fetched_result]
                 return JsonResponse({"result": result_dicts, "columns": columns})
             else:
-                return JsonResponse({"message": "The operation was successful, but the operation type could not be recognized。"})
+                return JsonResponse({"message": "No data found"})
+        else:
+            return JsonResponse({"message": "The operation was successful, but the operation type could not be recognized。"})
         
-        except pymysql.MySQLError as e:
-            print(f"Database error: {e}")
-            return JsonResponse({"error": "Database error occurred."}, status=500)
-
-        except Exception as e:
-            print(f"Error occurred: {str(e)}")
-            return JsonResponse({"error": str(e)}, status=500)
 
     return render(request, 'query_form.html')
