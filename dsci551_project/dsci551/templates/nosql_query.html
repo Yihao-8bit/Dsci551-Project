@@ -1,11 +1,11 @@
 <div>
-    <h1>向数据库提问（NoSQL）</h1>
+    <h1>Ask the database（NoSQL）</h1>
 
     <form id="mongoqueryForm" action="{% url 'nosql_mongo_query' %}" method="post">
         {% csrf_token %}
         <label for="data_link_query">Please enter your MongoDB link and the name of your dataset, seperate with a ",":</label>
         <textarea id="mongo_data_link_query" name="data_link_query" rows="4" cols="50"></textarea>
-        <label for="mongo_query">请输入你的查询：</label>
+        <label for="mongo_query">Please enter your query:</label>
         <textarea id="mongo_query" name="mongo_query" rows="4" cols="50"></textarea>
         <br>
         <input type="submit" value="提交 Mongo 查询">
@@ -15,23 +15,23 @@
         {% csrf_token %}
         <label for="data_link_query">Please enter your Firebase link:</label>
         <textarea id="firebase_data_link_query" name="data_link_query" rows="4" cols="50"></textarea>
-        <label for="firebase_query">请输入你的查询：</label>
+        <label for="firebase_query">Please enter your query:</label>
         <textarea id="firebase_query" name="firebase_query" rows="4" cols="50"></textarea>
         <br>
         <input type="submit" value="提交 Firebase 查询">
     </form>
 
     <div id="result-container" class="result-container" style="display: none;">
-        <h2>查询结果：</h2>
+        <h2>Query Results:</h2>
         <pre id="result"></pre>
     </div>
 
     <div id="error-container" class="error-container" style="display: none;">
-        <h2>错误：</h2>
+        <h2>Error:</h2>
         <pre id="error"></pre>
     </div>
 
-    <a href="{% url 'user_query_history' %}">查看我的查询历史</a>
+    <a href="{% url 'user_query_history' %}">View my query history</a>
 </div>
 
 <script>

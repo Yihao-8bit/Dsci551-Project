@@ -71,13 +71,13 @@
           margin-bottom: 20px;
           color: #222;
         }
-        .toggle-switch {
+        .db-toggle-switch {
             display: flex;
             flex-direction: column;
             gap: 10px;
             margin-top: 20px;
         }
-        .toggle-switch button {
+        .db-toggle-switch button {
             padding: 10px 0;
             font-size: 18px;
             border-radius: 6px;
@@ -88,10 +88,34 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        .toggle-switch button.active {
+        .db-toggle-switch button.active {
             background-color: #007BFF;
             color: white;
         }
+        .toggle-switch {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+          }
+
+          .toggle-switch button {
+            padding: 0.5em 1em;
+            font-size: 0.875rem;
+            border-radius: 0.375rem;
+            min-width: 6em;
+            border: none;
+            background-color: #ccc;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+          }
+
+          .toggle-switch button.active {
+            background-color: #007BFF;
+            color: white;
+          }
         .logo {
           width: 240px;
           margin-bottom: 20px;
@@ -111,7 +135,7 @@
           border: 1px solid #ccc;
           resize: vertical;
           box-sizing: border-box;
-          placeholder: "例如：查找过去一个月内销售额最高的客户";
+          placeholder: "For example, find the customer with the highest sales in the past month";
         }
         input[type="submit"] {
           margin-top: 12px;
@@ -202,50 +226,52 @@
 <body>
 <template id="mysql-template">
   <div style="max-height: 700px; overflow-y: auto;">
-    <h1>连接到你的数据库（MySQL）</h1>
+    <h1>Connect to your database (MySQL)</h1>
  
     <!-- 数据库连接表单 -->
-    <form id="dbForm" v-if="!hideConnectionForm">
+    <form id="dbForm" v-if="!hideConnectionForm" @submit.prevent="connectDatabase" style="text-align: left;">
       {% csrf_token %}
-      <label for="host">数据库主机：</label>
-      <input type="text" id="host" name="host" required>
-      <br>
-      <label for="username">数据库用户名：</label>
-      <input type="text" id="username" name="username" required>
-      <br>
-      <label for="password">数据库密码：</label>
-      <input type="password" id="password" name="password">
-      <br>
-      <label for="dbname">数据库名：</label>
-      <input type="text" id="dbname" name="dbname" required>
-      <br>
-      <input type="submit" value="连接数据库" @click.prevent="connectDatabase">
+      <label for="host">Database hosting:</label>
+      <textarea id="host" name="host" required rows="1" style="width: 100%; resize: none;"></textarea>
+
+      <label for="username">Database username:</label>
+      <textarea id="username" name="username" required rows="1" style="width: 100%; resize: none;"></textarea>
+
+      <label for="password">Database password:</label>
+      <textarea id="password" name="password" rows="1" style="width: 100%; resize: none;"></textarea>
+
+      <label for="dbname">Database Name:</label>
+      <textarea id="dbname" name="dbname" required rows="1" style="width: 100%; resize: none;"></textarea>
+
+      <div style="text-align: center;">
+        <input type="submit" value="Connect to Database">
+      </div>
     </form>
  
     <!-- 查询表单 -->
     <div id="queryForm" class="result-container" v-if="showQueryForm">
-      <h2>请输入查询</h2>
+      <h2>Please enter a query</h2>
       <form @submit.prevent="submitQuery">
         {% csrf_token %}
-        <label for="query">请输入你的查询：</label>
+        <label for="query">Please enter your query:</label>
         <textarea id="query" name="query" rows="4" cols="50" v-model="query"></textarea>
         <br>
-        <input type="submit" value="提交查询">
+        <input type="submit" value="Submit Query">
       </form>
  
       <!-- 返回数据库连接页面按钮 -->
-      <input type="submit" value="返回数据库连接" @click.prevent="showQueryForm = false; hideConnectionForm = false;">
+      <input type="submit" value="Back to Database Connection" @click.prevent="showQueryForm = false; hideConnectionForm = false;">
     </div>
  
     <!-- 查询结果区域 -->
     <!-- 加载动画 -->
     <div v-if="isLoading" class="loading-overlay">
       <div class="loading-spinner"></div>
-      <div style="text-align: center; margin-top: 10px;">正在查询，请稍候...</div>
+      <div style="text-align: center; margin-top: 10px;">Inquiring, please wait...</div>
     </div>
     <div id="result-container" class="result-container" v-if="result">
-      <h2>查询结果：</h2>
-      <div v-if="result.length === 0" style="color: #888;">无数据返回</div>
+      <h2>Query Results:</h2>
+      <div v-if="result.length === 0" style="color: #888;">No data returned</div>
       <table v-else class="table" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; width: 100%; margin-top: 10px;">
         <thead>
           <tr>
@@ -262,41 +288,72 @@
  
     <!-- 错误信息区域 -->
     <div id="error-container" class="error-container" v-if="error">
-      <h2>错误：</h2>
+      <h2>Error:</h2>
       <pre id="error"></pre>
     </div>
  
-    <a href="{% url 'user_query_history' %}">查看我的查询历史</a>
+    <a href="{% url 'user_query_history' %}">View my query history</a>
   </div>
 </template>
 
 <template id="nosql-template">
-  <div>
-    <h2>Ask the database（NoSQL）</h2>
+  <div style="position: relative; max-height: 700px; overflow-y: auto;">
+    <h2 style="margin-bottom: 10px;">Nosql Query</h2>
+    <div class="toggle-switch" style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px;">
+      <button type="button" :class="{ active: nosqlType === 'mongo' }" @click="nosqlType = 'mongo'">MongoDB</button>
+      <button type="button" :class="{ active: nosqlType === 'firebase' }" @click="nosqlType = 'firebase'">Firebase</button>
+    </div>
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <div style="text-align: center; margin-top: 10px;">Inquiring, please wait...</div>
+    </div>
+    <div v-if="nosqlType === 'mongo'">
+      <h2>MongoDB Query</h2>
+      <form id="mongoqueryForm" @submit.prevent="submitMongoQuery">
+          {% csrf_token %}
+          <label for="mongo_data_link_query">MongoDB link:</label>
+          <textarea id="mongo_data_link_query" v-model="mongoDatalink" rows="4" cols="50"></textarea>
+          <label for="mongo_query">Your MongoDB Query:</label>
+          <textarea id="mongo_query" v-model="mongoQuery" rows="4" cols="50"></textarea>
+          <br>
+          <div style="text-align: center;">
+            <input type="submit" value="Submit Mongo Query">
+          </div>
+      </form>
+      <hr style="margin: 24px 0; border: none; border-top: 1px solid #ddd;">
+    </div>
+   
+    <div v-if="nosqlType === 'firebase'">
+      <h2>Firebase Query</h2>
+      <form id="firebasequeryForm" action="{% url 'nosql_query' %}" method="post">
+          {% csrf_token %}
+          <label for="firebase_data_link_query">Firebase link:</label>
+          <textarea id="firebase_data_link_query" name="data_link_query" rows="4" cols="50"></textarea>
+          <label for="firebase_query">Your Firebase Query:</label>
+          <textarea id="firebase_query" name="firebase_query" rows="4" cols="50"></textarea>
+          <br>
+          <div style="text-align: center;">
+            <input type="submit" value="Submit Firebase Query">
+          </div>
+      </form>
+      <hr style="margin: 24px 0; border: none; border-top: 1px solid #ddd;">
+    </div>
  
-    <form id="mongoqueryForm" action="{% url 'nosql_mongo_query' %}" method="post">
-        {% csrf_token %}
-        <label for="mongo_data_link_query">MongoDB link:</label>
-        <textarea id="mongo_data_link_query" name="data_link_query" rows="4" cols="50"></textarea>
-        <label for="mongo_query">Your MongoDB Query:</label>
-        <textarea id="mongo_query" name="mongo_query" rows="4" cols="50"></textarea>
-        <br>
-        <input type="submit" value="Submit Mongo Query">
-    </form>
- 
-    <form id="firebasequeryForm" action="{% url 'nosql_query' %}" method="post">
-        {% csrf_token %}
-        <label for="firebase_data_link_query">Firebase link:</label>
-        <textarea id="firebase_data_link_query" name="data_link_query" rows="4" cols="50"></textarea>
-        <label for="firebase_query">Your Firebase Query:</label>
-        <textarea id="firebase_query" name="firebase_query" rows="4" cols="50"></textarea>
-        <br>
-        <input type="submit" value="Submit Firebase Query">
-    </form>
- 
-    <div id="result-container" class="result-container" style="display: none;">
-        <h2>Query Result:</h2>
-        <pre id="result"></pre>
+    <div id="result-container" class="result-container" v-if="result">
+      <h2>Query Results:</h2>
+      <div v-if="result.length === 0" style="color: #888;">No data returned</div>
+      <table v-else class="table" border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; width: 100%; margin-top: 10px;">
+        <thead>
+          <tr>
+            <th v-for="key in Object.keys(result[0])">{{ key }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in result">
+            <td v-for="key in Object.keys(row)" v-text="row[key]"></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
  
     <div id="error-container" class="error-container" style="display: none;">
@@ -327,11 +384,11 @@
     <div style="flex-grow: 1; padding: 30px; background-color: #fff; box-sizing: border-box; overflow-y: auto; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: left;">
       <div v-if="selectedQuery && selectedQuery.query_text">
         <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">Query Details</h2>
-        <p><strong>Query:</strong> <span v-if="selectedQuery.query_text">{{ selectedQuery.query_text }}</span><span v-else>暂无查询</span></p>
+        <p><strong>Query:</strong> <span v-if="selectedQuery.query_text">{{ selectedQuery.query_text }}</span><span v-else>No inquiries</span></p>
         <div><strong>Response:</strong></div>
         <pre v-if="selectedQuery.llm_response" style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word;">{{ selectedQuery.llm_response }}</pre>
-        <pre v-else style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word;">暂无响应内容</pre>
-        <div><strong>Time:</strong> <span v-if="selectedQuery.timestamp">{{ selectedQuery.timestamp }}</span><span v-else>未知时间</span></div>
+        <pre v-else style="background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word;">No response at this time</pre>
+        <div><strong>Time:</strong> <span v-if="selectedQuery.timestamp">{{ selectedQuery.timestamp }}</span><span v-else>unknown time</span></div>
       </div>
       <div v-else>
         <h2 style="font-size: 24px; margin-bottom: 20px; color: #222;">Click on a query to see the details</h2>
@@ -350,7 +407,7 @@
     <div class="left-panel">
       <img src="{% static 'images/logo.png' %}" alt="Logo" class="logo">
       <div class="welcome">welcome! {{ request.user.username }}!</div>
-      <div class="toggle-switch">
+      <div class="db-toggle-switch">
         <button type="button" :class="{ active: dbType === 'mysql' }" @click="dbType = 'mysql'">MySQL</button>
         <button type="button" :class="{ active: dbType === 'nosql' }" @click="dbType = 'nosql'">NoSQL</button>
       </div>
@@ -377,8 +434,8 @@
           query: '',
           result: null,
           error: null,
-          showQueryForm: false,       // ✅ 新增
-          hideConnectionForm: false,   // ✅ 新增
+          showQueryForm: false, 
+          hideConnectionForm: false,
           isLoading: false
         };
       },
@@ -474,6 +531,51 @@
         }
       }
     };
+    
+    const nosqlComponent = {
+      template: '#nosql-template',
+      data() {
+        return {
+          mongoDatalink: '',
+          mongoQuery: '',
+          result: null,
+          error: null,
+          isLoading: false,
+          nosqlType: 'mongo'
+        };
+      },
+      methods: {
+        submitMongoQuery() {
+          this.isLoading = true;
+
+          const formData = new FormData();
+          formData.append('data_link_query', this.mongoDatalink);
+          formData.append('mongoquery', this.mongoQuery);
+          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+          fetch("{% url 'nosql_mongo_query' %}", {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            this.isLoading = false;
+            if (data.result) {
+              this.result = data.result;
+              this.error = null;
+            } else if (data.error) {
+              this.result = null;
+              this.error = data.error;
+            }
+          })
+          .catch(err => {
+            this.isLoading = false;
+            this.result = null;
+            this.error = 'Query error: ' + err;
+          });
+        }
+      }
+    };
 
     const { createApp } = Vue;
 
@@ -527,9 +629,7 @@
       },
       components: {
         'mysql-component': mysqlComponent,
-        'nosql-component': {
-          template: '#nosql-template'
-        },
+        'nosql-component': nosqlComponent,
         'history-component': historyComponent
       }
     }).mount('#app');

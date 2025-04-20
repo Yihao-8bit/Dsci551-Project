@@ -118,7 +118,20 @@ def nosql_mongo_query(request):
         print(user_datalink)
         print(user_input)
         print()
-        uri, db_name = str(user_datalink).split(',')
+        # uri, db_name = str(user_datalink).split(',')
+        user_datalink = request.POST.get("data_link_query")
+
+        if not user_datalink or ',' not in user_datalink:
+            return JsonResponse({
+                "error": "Invalid MongoDB datalink format. Please use format: <uri>,<db_name> (e.g., mongodb://localhost:27017,dsci551)"
+            }, status=400)
+
+        try:
+            uri, db_name = user_datalink.split(',', 1)
+        except ValueError:
+            return JsonResponse({
+                "error": "MongoDB datalink must contain both URI and DB name, separated by a comma."
+            }, status=400)
         def get_db_structure(uri, db_name, sample_size=100):
 
             client = MongoClient(uri)
@@ -263,7 +276,7 @@ def user_register(request):
 
         User.objects.create_user(username=username, password=password)
         messages.success(request, "注册成功，请登录！")
-        return redirect("login")
+        return redirect("/")
 
     return render(request, "home.html")
 
@@ -388,7 +401,7 @@ def natural_language_query(request):
             "You must ONLY return valid SQL command for MySQL. "
             "Do not include Python code such as import statements, and do not return any Python code for execution. "
             "Only return SQL queries that can be directly executed in MySQL. "
-            "If you understand, output only 'ok. I'm ready.'."
+            "If you understand, output only 'ok. I'm ready.'Dont put any other words"
         )
 
         print(db_schema)
