@@ -4,24 +4,7 @@
 
 ChatDB is an interactive, ChatGPT-like application that assists users in learning how to query data in various database systems (both SQL and NoSQL). Unlike traditional query interfaces, ChatDB provides a natural language approach to database interactions while still allowing real-time query execution and result display.
 
- 
-## 目录
-
-- [上手指南](#上手指南)
-  - [开发前的配置要求](#开发前的配置要求)
-  - [安装步骤](#安装步骤)
-- [文件目录说明](#文件目录说明)
-- [开发的架构](#开发的架构)
-- [部署](#部署)
-- [使用到的框架](#使用到的框架)
-- [贡献者](#贡献者)
-  - [如何参与开源项目](#如何参与开源项目)
-- [版本控制](#版本控制)
-- [作者](#作者)
-- [鸣谢](#鸣谢)
-
-
-### Project Structure
+## Project Structure
 ***
 ```
 DSCI551_PROJECT/
@@ -60,12 +43,7 @@ DSCI551_PROJECT/
 ├── manage.py
 └── requirements.txt
 ```
-
-
-
-
-
-### Technology Stack
+## Technology Stack
 ***
 - **Frontend**: HTML, CSS, JavaScript
 - **Backend**: Django  
@@ -77,7 +55,7 @@ DSCI551_PROJECT/
   - `pymongo==4.12.1`
   - `PyMySQL==1.1.0`
   - `Requests==2.32.3`
-
+  - 
 ### Setup and Installation
 ***
 1. **Clone the repository**  
@@ -92,8 +70,7 @@ DSCI551_PROJECT/
    ```python
    python manage.py runserver
    ```
-4. **Open your browser and navigate to: `http://127.0.0.1:8000`.** 
-
+4. **Open your browser and navigate to: `http://127.0.0.1:8000`.**
 
 ### Usage
 ***
