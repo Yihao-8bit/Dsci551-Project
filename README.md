@@ -54,7 +54,7 @@ DSCI551_PROJECT/
   - `pymongo==4.12.1`
   - `PyMySQL==1.1.0`
   - `Requests==2.32.3`
-  - 
+  
 ## 🚀 Setup and Installation
 ---
 1. **Clone the repository**  
