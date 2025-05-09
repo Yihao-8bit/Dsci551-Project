@@ -5,7 +5,7 @@
 ChatDB is an interactive, ChatGPT-like application that assists users in learning how to query data in various database systems (both SQL and NoSQL). Unlike traditional query interfaces, ChatDB provides a natural language approach to database interactions while still allowing real-time query execution and result display.
 
 ## Project Structure
-```
+---
 DSCI551_PROJECT/
 ├── dsci551/
 │ ├── migrations/
@@ -43,7 +43,7 @@ DSCI551_PROJECT/
 └── requirements.txt
 ```
 ## Technology Stack
-```
+---
 - **Frontend**: HTML, CSS, JavaScript
 - **Backend**: Django  
 - **Databases**:  
@@ -56,7 +56,7 @@ DSCI551_PROJECT/
   - `Requests==2.32.3`
   - 
 ### Setup and Installation
-***
+---
 1. **Clone the repository**  
    ```bash
    git clone [repository-url]
@@ -72,7 +72,7 @@ DSCI551_PROJECT/
 4. **Open your browser and navigate to: `http://127.0.0.1:8000`.**
 
 ### Usage
-***
+---
 1. **Login**  
 2. **Database Selection**: Choose between MySQL and MongoDB
 3. **Database Connection**: Connect MySQL by password, MongoDB by URL
