@@ -41,8 +41,6 @@ git clone https://github.com/shaojintian/Best_README_template.git
 ```
 
 ### Project Structure
-eg:
-
 ```
 DSCI551_PROJECT/
 ├── dsci551/
@@ -98,9 +96,21 @@ DSCI551_PROJECT/
   - `PyMySQL==1.1.0`
   - `Requests==2.32.3`
 
-### 部署
+### Setup and Installation
+1. **Clone the repository**  
+   ```bash
+   git clone [repository-url]
+   ```
+2. **Install required dependencies**  
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Start Django server**  
+   ```python
+   python manage.py runserver
+   ```
 
-暂无
+
 
 ### 使用到的框架
 
