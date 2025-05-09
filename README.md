@@ -98,9 +98,8 @@ DSCI551_PROJECT/
 ### Usage
 
 1. **Login**  
-2. **Database Selection**
-    Choose between MySQL and MongoDB
-4. **Natural Language Queries**
-    Input the query statement
+2. **Database Selection**: Choose between MySQL and MongoDB
+3. **Database Connection**: Connect MySQL by password, MongoDB by URL
+4. **Natural Language Queries**: Input the query statement you want to try
    
 
