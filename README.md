@@ -44,7 +44,6 @@ git clone https://github.com/shaojintian/Best_README_template.git
 eg:
 
 ```
-filetree 
 DSCI551_PROJECT/
 ├── dsci551/
 │ ├── migrations/
@@ -86,9 +85,18 @@ DSCI551_PROJECT/
 
 
 
-### 开发的架构 
+### Technology Stack
 
-请阅读[ARCHITECTURE.md](https://github.com/shaojintian/Best_README_template/blob/master/ARCHITECTURE.md) 查阅为该项目的架构。
+- **Frontend**: HTML, CSS, JavaScript
+- **Backend**: Django  
+- **Databases**:  
+  - MySQL (relational)  
+  - MongoDB (NoSQL)  
+- **Dependencies**:  
+  - `Django==5.0.3`
+  - `pymongo==4.12.1`
+  - `PyMySQL==1.1.0`
+  - `Requests==2.32.3`
 
 ### 部署
 
