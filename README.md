@@ -22,7 +22,7 @@ ChatDB is an interactive, ChatGPT-like application that assists users in learnin
 
 
 ### Project Structure
-
+***
 ```
 DSCI551_PROJECT/
 ├── dsci551/
@@ -66,7 +66,7 @@ DSCI551_PROJECT/
 
 
 ### Technology Stack
-
+***
 - **Frontend**: HTML, CSS, JavaScript
 - **Backend**: Django  
 - **Databases**:  
@@ -79,7 +79,7 @@ DSCI551_PROJECT/
   - `Requests==2.32.3`
 
 ### Setup and Installation
-
+***
 1. **Clone the repository**  
    ```bash
    git clone [repository-url]
@@ -96,7 +96,7 @@ DSCI551_PROJECT/
 
 
 ### Usage
-
+***
 1. **Login**  
 2. **Database Selection**: Choose between MySQL and MongoDB
 3. **Database Connection**: Connect MySQL by password, MongoDB by URL
