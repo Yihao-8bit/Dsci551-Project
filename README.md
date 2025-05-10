@@ -65,11 +65,24 @@ DSCI551_PROJECT/
    ```bash
    pip install -r requirements.txt
    ```
-3. **Start Django server**  
+3. **Enter your own mysql account under dsci551_project/dsci551_project/setting.py**
+   '''
+   DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'dsci551_project',  # you database name
+        'USER': 'root',  #your mysql username
+        'PASSWORD': '******',  #your mysql password
+        'HOST': 'localhost',  
+        'PORT': '3306',  #The port you want
+    }
+   }
+   '''
+5. **Start Django server**  
    ```python
    python manage.py runserver
    ```
-4. **Open your browser and navigate to: `http://127.0.0.1:8000`**
+6. **Open your browser and navigate to: `http://127.0.0.1:8000`**
 
 ## 👨‍💻 Import Dataset
 ---
