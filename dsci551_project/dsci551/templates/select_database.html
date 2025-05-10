@@ -313,7 +313,7 @@
       <h2>MongoDB Query</h2>
       <form id="mongoqueryForm" @submit.prevent="submitMongoQuery">
           {% csrf_token %}
-          <label for="mongo_data_link_query">MongoDB link:</label>
+          <label for="mongo_data_link_query">MongoDB link and database name, separated with a comma:</label>
           <textarea id="mongo_data_link_query" v-model="mongoDatalink" rows="4" cols="50"></textarea>
           <label for="mongo_query">Your MongoDB Query:</label>
           <textarea id="mongo_query" v-model="mongoQuery" rows="4" cols="50"></textarea>
