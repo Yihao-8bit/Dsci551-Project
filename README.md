@@ -79,8 +79,12 @@ We use the dataset from HW5, and our data is in the folder 'Data_Source/MongoDB'
 ## 🔗 Usage
 ---
 1. **Login**  
-2. **Database Selection**: Choose between MySQL and MongoDB
-3. **Database Connection**: Connect MySQL by password, MongoDB by URL
-4. **Natural Language Queries**: Input the query statement you want to try
+2. **Database Selection**
+   - Choose between MySQL and MongoDB
+3. **Database Connection**
+   - Connect to your MySQL database by input your database name and password
+   - Connect to your MongoDB database by input URL
+4. **Natural Language Queries**
+   - Input the query statement you want to try
 ---
 Made with ❤️‍🔥 by Team ChatDB 42
