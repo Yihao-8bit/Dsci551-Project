@@ -1,0 +1,4 @@
+Django==5.0.3
+pymongo==4.12.1
+PyMySQL==1.1.0
+Requests==2.32.3
