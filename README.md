@@ -66,7 +66,7 @@ DSCI551_PROJECT/
    pip install -r requirements.txt
    ```
 3. **Enter your own mysql account under dsci551_project/dsci551_project/setting.py**
-   '''
+   ```python
    DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -77,7 +77,7 @@ DSCI551_PROJECT/
         'PORT': '3306',  #The port you want
     }
    }
-   '''
+   ```
 5. **Start Django server**  
    ```python
    python manage.py runserver
