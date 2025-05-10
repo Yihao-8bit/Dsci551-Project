@@ -69,12 +69,13 @@ DSCI551_PROJECT/
    ```python
    python manage.py runserver
    ```
-4. **Open your browser and navigate to: `http://127.0.0.1:8000`.**
+4. **Open your browser and navigate to: `http://127.0.0.1:8000`**
 
-## Import Dataset
-
-1. **MongoDB Dataset**
-We use the dataset from HW5, and our data is in the folder 'Data_Source/MongoDB' path, you can import each of them as separate tables in on database in mongoDB.
+## 👨‍💻 Import Dataset
+1. **MySQL Dataset**
+    We use the dataset from HW3 as an example, and our data is in the folder 'Data_Source/MySQL' path, you can import each of them as separate tables in on database in MySQL
+2. **MongoDB Dataset**
+    We use the dataset from HW5 as an example, and our data is in the folder 'Data_Source/MongoDB' path, you can import each of them as separate tables in on database in mongoDB
 
 ## 🔗 Usage
 ---
