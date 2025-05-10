@@ -3,10 +3,10 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class UserQueryHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # 关联用户
-    query_text = models.TextField()  # 用户的查询文本
-    llm_response = models.TextField()  # LLM 返回的查询结果
-    timestamp = models.DateTimeField(auto_now_add=True)  # 查询时间
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  
+    query_text = models.TextField()  # user's query
+    llm_response = models.TextField()  # result from LLM
+    timestamp = models.DateTimeField(auto_now_add=True)  # query time
 
     def __str__(self):
         return f"Query by {self.user.username} at {self.timestamp}"

@@ -71,6 +71,11 @@ DSCI551_PROJECT/
    ```
 4. **Open your browser and navigate to: `http://127.0.0.1:8000`.**
 
+## Import Dataset
+
+1. **MongoDB Dataset**
+We use the dataset from HW5, and our data is in the folder 'Data_Source/MongoDB' path, you can import each of them as separate tables in on database in mongoDB.
+
 ## 🔗 Usage
 ---
 1. **Login**  

@@ -17,12 +17,12 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
-from dsci551 import views  # 导入 dsci551 应用中的 views 模块
-from django.shortcuts import redirect  # 如果你希望根路径重定向到查询页面
+from dsci551 import views  # import views
+from django.shortcuts import redirect  # if you want to redirect
 
 from django.contrib import admin
 from django.urls import path
-from dsci551 import views  # 导入 dsci551 应用中的 views 模块
+from dsci551 import views  # import views
 
 from django.urls import path
 from django.shortcuts import render 
@@ -31,15 +31,15 @@ from django.shortcuts import render
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # 主页选择页面
+    # choose page
     path('', views.home, name='home'),
 
-    # 登录、注册和注销路径
+    # register, login and logout path
     path('login/', views.user_login, name='login'),
     path('register/', views.user_register, name='register'),
     path('logout/', views.user_logout, name='logout'),
 
-    # 查询页面
+    # query page
     path('connect/', views.connect_database, name='connect_database'), 
     path('query/', views.natural_language_query, name='natural_language_query'),
     path('history/', views.user_query_history, name='user_query_history'), 

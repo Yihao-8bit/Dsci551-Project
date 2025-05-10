@@ -57,8 +57,8 @@ ROOT_URLCONF = "dsci551_project.urls"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # 添加这个配置来告知 Django 在根目录的 templates 文件夹查找模板
-        'APP_DIRS': True,  # 启用 app 目录中的模板
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': True,  
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -80,11 +80,11 @@ WSGI_APPLICATION = "dsci551_project.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dsci551_project',  # 您的数据库名称
-        'USER': 'root',  # MySQL 用户名
-        'PASSWORD': '',  # MySQL 密码
-        'HOST': 'localhost',  # 数据库主机
-        'PORT': '3306',  # 默认 MySQL 端口
+        'NAME': 'dsci551_project',  # database name
+        'USER': 'root',  
+        'PASSWORD': '20020718',  
+        'HOST': 'localhost',  
+        'PORT': '3306',  
     }
 }
 
@@ -131,6 +131,6 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # 使用数据库存储 session
-SESSION_COOKIE_NAME = 'sessionid'  # 默认的 session 名称
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # use database to store session
+SESSION_COOKIE_NAME = 'sessionid'  # default session name
 

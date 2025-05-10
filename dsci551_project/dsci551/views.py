@@ -112,12 +112,8 @@ def nosql_mongo_query(request):
         user_input = request.POST.get('mongoquery')
         deepseek_api_key = "sk-c6d9cd93a21b418da5adc6ef7fcb2479"
         deepseek_api_url = "https://api.deepseek.com/v1/chat/completions"
-        # 更新系统提示语
-        #print(user_datalink)
-        print(user_input)
-        print()
-        # uri, db_name = str(user_datalink).split(',')
         user_datalink = request.POST.get("data_link_query")
+        uri, db_name = str(user_datalink).split(',')
         print(user_datalink)
         if not user_datalink or ',' not in user_datalink:
             return JsonResponse({
@@ -132,7 +128,6 @@ def nosql_mongo_query(request):
             }, status=400)
         def get_db_structure(uri, db_name, sample_size=100):
 
-            from pymongo import MongoClient
             client = MongoClient(uri)
             db = client[db_name]
             
@@ -174,19 +169,20 @@ def nosql_mongo_query(request):
         if not content:
             return JsonResponse({"error": "Error processing your request."}, status=400)
 
-        # 打印 LLM 返回的 SQL 语句
-        print(f"LLM 返回的 SQL 查询语句：\n{content}")
-        # 清洗并执行返回的代码
+        # print query from LLM
+        print(f"Mongo Query from LLM:\n{content}")
+        # clean the code
         safe_locals = {}
         safe_code = clean_code_block(content)
-        # 打印清洗后的 SQL 语句（如果需要查看清洗后的 SQL） 
-        print(f"清洗后的 SQL 查询语句：\n{safe_code}")
+        print(f"Mongo Query from LLM after Cleaning：\n{safe_code}")
         try:
-
+            # execute the LLM query
+            #client = MongoClient("mongodb://localhost:27017/")
             client = MongoClient(uri)
             db = client[db_name]
             safe_locals = {'db': db,"result": ""}
             exec(safe_code, {}, safe_locals)
+            # save user history
             query_history = UserQueryHistory(user=request.user, query_text=user_input, llm_response=str(safe_locals['result']))
             query_history.save()
             my_output = safe_locals['result']
@@ -205,6 +201,7 @@ def nosql_mongo_query(request):
                 my_output = f"Update Success! Matched {my_output.matched_count}, modified {my_output.modified_count}."
 
 
+            # return the query result
             if isinstance(my_output, list):
                 return JsonResponse({"result": my_output})
             else:
@@ -215,6 +212,7 @@ def nosql_mongo_query(request):
             print(f"Error occurred: {str(e)}")
             return JsonResponse({"error": str(e)}, status=500)
     return render(request, 'nosql_query.html')
+
 
 @login_required
 def select_database(request):
@@ -308,7 +306,7 @@ def user_logout(request):
     return redirect('login')
 
 
-# 调用 DeepSeek API
+# use Deepseek AI
 def call_deepseek(messages, deepseek_api_key: str, deepseek_api_url: str, model="deepseek-chat"):
     headers = {
         "Content-Type": "application/json",
